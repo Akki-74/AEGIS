@@ -1,6 +1,6 @@
 [
   {
-    "incident_id": "ff28c56a-4f9f-40c3-b011-1055648060d9",
+    "incident_id": "d18882cf-c2b1-4545-87bf-a80386bbea77",
     "score": 0.4714,
     "severity": "medium",
     "start_time": "2026-10-28T09:05:10+00:00",
@@ -23,7 +23,7 @@
     "alert_count": 6,
     "alerts": [
       {
-        "rule_id": "15a94696-559f-4815-b95c-6c890a064352",
+        "rule_id": "8a676b97-c45e-46cc-b863-2614b76571c9",
         "rule_name": "technique_id=T1021.002,technique_name=SMB/Windows Admin Shares",
         "mitre_technique": "T1021.002",
         "mitre_tactic": "lateral_movement",
@@ -63,10 +63,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "8c9dec43-4f3f-46e5-a000-0cd190177005"
+        "alert_id": "39fc4ac1-6f7a-45fb-b5ab-cfb1e8c07f56"
       },
       {
-        "rule_id": "8b58d6a0-96fb-41d2-b244-ef0fec52f1c5",
+        "rule_id": "1938704e-fd0d-4fe4-b085-7592b819d254",
         "rule_name": "technique_id=T1570,technique_name=Lateral Tool Transfer",
         "mitre_technique": "T1570",
         "mitre_tactic": "lateral tool transfer",
@@ -106,10 +106,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "e2850cdf-b4b0-43f7-9efa-470648b5188a"
+        "alert_id": "f0381650-4188-4248-adb3-93c72aaf1ee5"
       },
       {
-        "rule_id": "d89e59ce-f4ab-42c4-ae58-d0a76dce7dfc",
+        "rule_id": "8e38b5bf-73ac-454e-9bb9-57aef76f2d02",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -148,10 +148,10 @@
         "dest_ip": "203.0.113.100",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "0769ecfa-dce1-4c4d-a16e-6ddbeaf05c26"
+        "alert_id": "4fc3b86b-c88e-4b8d-9691-528caaa6e258"
       },
       {
-        "rule_id": "b4e19361-2c00-42f1-8c36-e64ca6f40163",
+        "rule_id": "ec5012c2-d3de-4c2c-b996-f5f2a4ae9158",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -190,10 +190,10 @@
         "dest_ip": "10.0.1.1",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "39fdd929-5a06-4a91-a954-9d0c2df5e011"
+        "alert_id": "e94733f9-cb94-40e8-9c63-c7493752919f"
       },
       {
-        "rule_id": "b36189d7-bc2b-4582-bc78-5deec075066d",
+        "rule_id": "e796bf79-c3da-4b15-bece-8c2fa0f7c97c",
         "rule_name": "technique_id=T1021.002,technique_name=SMB/Windows Admin Shares",
         "mitre_technique": "T1021.002",
         "mitre_tactic": "lateral_movement",
@@ -233,10 +233,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "27324dbb-38c1-48e3-adfa-3c3fe75c87ff"
+        "alert_id": "5e9ba263-38f3-489e-8534-f9aaecbfa3fa"
       },
       {
-        "rule_id": "f9719032-a766-4ca1-9ed2-8e09815fc72d",
+        "rule_id": "fea4e6ba-cd6a-4431-99c6-7304e5afd4ba",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -275,10 +275,17 @@
         "dest_ip": "203.0.113.100",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "bae6221b-e9f9-47ff-a07a-f10313f98ee3"
+        "alert_id": "51be6f14-ea4e-40e7-a59a-f2ddbe8b12ab"
       }
     ],
     "entities": [
+      {
+        "entity_type": "logon_session",
+        "entity_id": "server01.corp.local|0x3e7",
+        "attributes": {
+          "hostname": "SERVER01.corp.local"
+        }
+      },
       {
         "entity_type": "user",
         "entity_id": "nt authority\\system",
@@ -290,9 +297,16 @@
       },
       {
         "entity_type": "logon_session",
-        "entity_id": "server01.corp.local|0x3e7",
+        "entity_id": "dc01.corp.local|0x3e7",
         "attributes": {
-          "hostname": "SERVER01.corp.local"
+          "hostname": "DC01.corp.local"
+        }
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "10.0.1.20",
+        "attributes": {
+          "direction": "destination"
         }
       },
       {
@@ -303,10 +317,25 @@
         }
       },
       {
-        "entity_type": "ip",
-        "entity_id": "10.0.1.20",
+        "entity_type": "host",
+        "entity_id": "server01.corp.local",
+        "attributes": {}
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "dc01.corp.local|{cccc0001-0000-6720-0300-000000000010}",
         "attributes": {
-          "direction": "destination"
+          "hostname": "DC01.corp.local",
+          "raw_guid": "{cccc0001-0000-6720-0300-000000000010}",
+          "is_parent": true
+        }
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "server01.corp.local|{bbbb0001-0001-6720-0200-000000010000}",
+        "attributes": {
+          "hostname": "SERVER01.corp.local",
+          "raw_guid": "{bbbb0001-0001-6720-0200-000000010000}"
         }
       },
       {
@@ -320,45 +349,11 @@
       },
       {
         "entity_type": "process",
-        "entity_id": "server01.corp.local|{bbbb0001-0001-6720-0200-000000010000}",
-        "attributes": {
-          "hostname": "SERVER01.corp.local",
-          "raw_guid": "{bbbb0001-0001-6720-0200-000000010000}"
-        }
-      },
-      {
-        "entity_type": "host",
-        "entity_id": "server01.corp.local",
-        "attributes": {}
-      },
-      {
-        "entity_type": "process",
         "entity_id": "dc01.corp.local|{cccc0001-0001-6720-0300-000000010000}",
         "attributes": {
           "hostname": "DC01.corp.local",
           "raw_guid": "{cccc0001-0001-6720-0300-000000010000}"
         }
-      },
-      {
-        "entity_type": "process",
-        "entity_id": "dc01.corp.local|{cccc0001-0000-6720-0300-000000000010}",
-        "attributes": {
-          "hostname": "DC01.corp.local",
-          "raw_guid": "{cccc0001-0000-6720-0300-000000000010}",
-          "is_parent": true
-        }
-      },
-      {
-        "entity_type": "logon_session",
-        "entity_id": "dc01.corp.local|0x3e7",
-        "attributes": {
-          "hostname": "DC01.corp.local"
-        }
-      },
-      {
-        "entity_type": "host",
-        "entity_id": "dc01.corp.local",
-        "attributes": {}
       },
       {
         "entity_type": "process",
@@ -374,6 +369,11 @@
         "attributes": {
           "direction": "destination"
         }
+      },
+      {
+        "entity_type": "host",
+        "entity_id": "dc01.corp.local",
+        "attributes": {}
       }
     ],
     "blast_radius": {
@@ -387,7 +387,7 @@
     ]
   },
   {
-    "incident_id": "20d9ea35-6212-4805-a901-b3a4002f483a",
+    "incident_id": "478f32b4-894e-44e1-9d00-c5dc4ed068f0",
     "score": 0.4443,
     "severity": "medium",
     "start_time": "2026-10-28T09:00:00+00:00",
@@ -412,7 +412,7 @@
     "alert_count": 11,
     "alerts": [
       {
-        "rule_id": "17b01825-b118-4778-8c52-dd063330d8c6",
+        "rule_id": "765dd22e-1cdc-4f89-9054-39878ced0dc9",
         "rule_name": "technique_id=T1218.005,technique_name=Mshta",
         "mitre_technique": "T1218.005",
         "mitre_tactic": "defense_evasion",
@@ -454,10 +454,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "5242218f-e623-4fcd-8168-c8f65e12bb60"
+        "alert_id": "77248c89-d10f-4d35-bd49-06388c8f4a29"
       },
       {
-        "rule_id": "941899fe-0f62-487b-9459-81f31846b616",
+        "rule_id": "1d637f75-13fc-42e1-a4b7-308265c1b6dd",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -496,10 +496,10 @@
         "dest_ip": "203.0.113.100",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "2086a99f-d541-4a42-8e37-372bc830e94b"
+        "alert_id": "a1bc83e4-562d-4c73-ac61-01fd1882078b"
       },
       {
-        "rule_id": "8e3414c7-088f-431e-b011-f541db582d23",
+        "rule_id": "41a2d16e-965e-43ab-8005-d4a34b672053",
         "rule_name": "technique_id=T1059.001,technique_name=PowerShell",
         "mitre_technique": "T1059.001",
         "mitre_tactic": "execution",
@@ -539,10 +539,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "46f3c43f-6fb8-4d30-8f82-d15afb947519"
+        "alert_id": "7fa711e3-ff40-44b3-9846-1b09489b727d"
       },
       {
-        "rule_id": "f074e8e7-6cf1-444e-bfd7-45eb7c439781",
+        "rule_id": "3d6b3ffe-f096-49a5-874d-c5c3b065731c",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -581,10 +581,10 @@
         "dest_ip": "203.0.113.100",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "d34fde9c-c453-4e34-b3c5-795937477368"
+        "alert_id": "d8e6942f-121c-44d1-9b72-f39412989e58"
       },
       {
-        "rule_id": "4ab0183a-1cad-495d-a50c-6da5ae985a93",
+        "rule_id": "262b0bed-f309-44a5-a389-2c0d3c559fb8",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -615,10 +615,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "db8ab743-a1f8-4bba-9671-f18b07d97224"
+        "alert_id": "65c175d7-ce05-40bc-b60c-cc9adff732a6"
       },
       {
-        "rule_id": "2ec18284-c883-4d40-aa18-f735b9dc8b3c",
+        "rule_id": "cfe44c35-4703-4204-a702-cc410206673f",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -648,10 +648,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "0f3888b4-05d6-4ea8-8170-a3de65abe5d3"
+        "alert_id": "265b0619-014d-4ef4-b636-188b571b52d0"
       },
       {
-        "rule_id": "fd7a11c1-dafb-4810-9c20-ef20dcbf4b30",
+        "rule_id": "3353c6e9-99a8-4354-a775-d9b270a36b6a",
         "rule_name": "technique_id=T1204.002,technique_name=User Execution: Malicious File",
         "mitre_technique": "T1204.002",
         "mitre_tactic": "execution",
@@ -691,10 +691,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "72ee4e21-b6bc-4c08-ac6b-7d9881f45f68"
+        "alert_id": "89ceac25-7690-4cb7-8513-ed3d43792399"
       },
       {
-        "rule_id": "0baa0981-72c8-4d0f-b0e1-8794ff344a36",
+        "rule_id": "62bc03a6-51a1-4f9f-a185-d15f3135d561",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -733,10 +733,10 @@
         "dest_ip": "203.0.113.100",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "8a50bb6c-d99e-496e-9eca-7d60fb10aaf2"
+        "alert_id": "63055cd1-0106-4e88-a24c-0acac7496401"
       },
       {
-        "rule_id": "9d1d22e6-dbe6-4d83-a846-ad6041764d76",
+        "rule_id": "c0af183d-f7d6-42d6-b44b-a83350d26430",
         "rule_name": "technique_id=T1003.001,technique_name=LSASS Memory",
         "mitre_technique": "T1003.001",
         "mitre_tactic": "credential_access",
@@ -771,10 +771,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "c95ade33-ded1-4de7-8bc2-c5316b962c30"
+        "alert_id": "f08c5447-53d8-4308-8c91-ed02f5a92399"
       },
       {
-        "rule_id": "012187a9-ce82-47eb-8417-607d02057aab",
+        "rule_id": "de465c1c-a1d3-443f-9ebb-67c70ff720d0",
         "rule_name": "technique_id=T1003.001,technique_name=LSASS Memory",
         "mitre_technique": "T1003.001",
         "mitre_tactic": "credential_access",
@@ -809,10 +809,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "d4220a3b-3c35-4ca1-9ff0-cecfc8669f32"
+        "alert_id": "dec386b4-c112-4d74-be0e-a29334dd6bdd"
       },
       {
-        "rule_id": "48047b7b-63d7-4d13-abf7-c9279e0d79aa",
+        "rule_id": "30ffe968-ac90-4b1b-92d9-0f4e1072a645",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -851,40 +851,10 @@
         "dest_ip": "10.0.1.20",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "5365b48a-ce7e-457f-9515-11e51b405b84"
+        "alert_id": "9fc339a0-212f-4251-90a7-8a9e07e3f74f"
       }
     ],
     "entities": [
-      {
-        "entity_type": "process",
-        "entity_id": "workstation01.corp.local|{aaaa0001-0003-6720-0100-000000030000}",
-        "attributes": {
-          "hostname": "WORKSTATION01.corp.local",
-          "raw_guid": "{aaaa0001-0003-6720-0100-000000030000}"
-        }
-      },
-      {
-        "entity_type": "process",
-        "entity_id": "workstation01.corp.local|{aaaa0001-0001-6720-0100-000000010000}",
-        "attributes": {
-          "hostname": "WORKSTATION01.corp.local",
-          "raw_guid": "{aaaa0001-0001-6720-0100-000000010000}"
-        }
-      },
-      {
-        "entity_type": "ip",
-        "entity_id": "203.0.113.100",
-        "attributes": {
-          "direction": "destination"
-        }
-      },
-      {
-        "entity_type": "ip",
-        "entity_id": "10.0.1.20",
-        "attributes": {
-          "direction": "destination"
-        }
-      },
       {
         "entity_type": "user",
         "entity_id": "corp\\victim",
@@ -895,10 +865,52 @@
         }
       },
       {
+        "entity_type": "process",
+        "entity_id": "workstation01.corp.local|{aaaa0001-0002-6720-0100-000000020000}",
+        "attributes": {
+          "hostname": "WORKSTATION01.corp.local",
+          "raw_guid": "{aaaa0001-0002-6720-0100-000000020000}"
+        }
+      },
+      {
+        "entity_type": "host",
+        "entity_id": "workstation01.corp.local",
+        "attributes": {}
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "10.0.1.20",
+        "attributes": {
+          "direction": "destination"
+        }
+      },
+      {
         "entity_type": "ip",
         "entity_id": "10.0.1.10",
         "attributes": {
           "direction": "source"
+        }
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "203.0.113.100",
+        "attributes": {
+          "direction": "destination"
+        }
+      },
+      {
+        "entity_type": "logon_session",
+        "entity_id": "workstation01.corp.local|0x1a2b3c",
+        "attributes": {
+          "hostname": "WORKSTATION01.corp.local"
+        }
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "workstation01.corp.local|{aaaa0001-0003-6720-0100-000000030000}",
+        "attributes": {
+          "hostname": "WORKSTATION01.corp.local",
+          "raw_guid": "{aaaa0001-0003-6720-0100-000000030000}"
         }
       },
       {
@@ -911,23 +923,11 @@
         }
       },
       {
-        "entity_type": "host",
-        "entity_id": "workstation01.corp.local",
-        "attributes": {}
-      },
-      {
-        "entity_type": "logon_session",
-        "entity_id": "workstation01.corp.local|0x1a2b3c",
-        "attributes": {
-          "hostname": "WORKSTATION01.corp.local"
-        }
-      },
-      {
         "entity_type": "process",
-        "entity_id": "workstation01.corp.local|{aaaa0001-0002-6720-0100-000000020000}",
+        "entity_id": "workstation01.corp.local|{aaaa0001-0001-6720-0100-000000010000}",
         "attributes": {
           "hostname": "WORKSTATION01.corp.local",
-          "raw_guid": "{aaaa0001-0002-6720-0100-000000020000}"
+          "raw_guid": "{aaaa0001-0001-6720-0100-000000010000}"
         }
       }
     ],
@@ -943,7 +943,7 @@
     ]
   },
   {
-    "incident_id": "a9e5235b-f232-45d3-a8bd-e12f8afa4117",
+    "incident_id": "bfe6d1cc-44d2-4351-a11e-33bec8498d1f",
     "score": 0.25,
     "severity": "low",
     "start_time": "2026-10-28T09:10:02+00:00",
@@ -959,7 +959,7 @@
     "alert_count": 2,
     "alerts": [
       {
-        "rule_id": "af67b759-1ac6-4628-a435-579af8c9567e",
+        "rule_id": "2fc97657-cb1c-4e28-9e5e-bfd8fa79da7d",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -1004,10 +1004,10 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "0bd3726b-c55c-4909-a055-7f5085aa6aec"
+        "alert_id": "f26bfb34-af7d-4649-bddb-a5fc86a93a3e"
       },
       {
-        "rule_id": "5fcd04c6-b309-4566-9d6a-ff7c93538b60",
+        "rule_id": "de6d1217-41df-4f53-af80-69d539e4adf5",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -1045,10 +1045,17 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "897fda3c-dac8-494b-ad6a-484df02a49ca"
+        "alert_id": "539339cd-cf1c-4b86-928d-6d1c4c1f885a"
       }
     ],
     "entities": [
+      {
+        "entity_type": "logon_session",
+        "entity_id": "dc01.corp.local|0xab1234",
+        "attributes": {
+          "hostname": "DC01.corp.local"
+        }
+      },
       {
         "entity_type": "host",
         "entity_id": "dc01.corp.local",
@@ -1061,13 +1068,6 @@
           "domain": "_local",
           "samaccountname": "administrator",
           "is_machine_account": false
-        }
-      },
-      {
-        "entity_type": "logon_session",
-        "entity_id": "dc01.corp.local|0xab1234",
-        "attributes": {
-          "hostname": "DC01.corp.local"
         }
       },
       {
@@ -1087,7 +1087,7 @@
     "playbook_recommendations": []
   },
   {
-    "incident_id": "e91e837e-049c-4fb8-8750-7459c35d1d12",
+    "incident_id": "91b2b39b-65dc-4a08-941f-7b0b3693529e",
     "score": 0.17,
     "severity": "low",
     "start_time": "2026-10-28T09:05:02+00:00",
@@ -1103,7 +1103,7 @@
     "alert_count": 1,
     "alerts": [
       {
-        "rule_id": "05467cc5-5558-43b5-87c9-67254edb3be5",
+        "rule_id": "78d6b550-fcf3-49f9-b12c-ac92b4a6988c",
         "rule_name": "Security Alert",
         "mitre_technique": "",
         "mitre_tactic": "",
@@ -1148,21 +1148,21 @@
         "dest_ip": "",
         "network_session_id": "",
         "extra": {},
-        "alert_id": "4586aa1c-983f-48cf-9eb1-12e902606f26"
+        "alert_id": "fd756d09-8ec6-4be3-9d99-3ddf050f8384"
       }
     ],
     "entities": [
+      {
+        "entity_type": "host",
+        "entity_id": "server01.corp.local",
+        "attributes": {}
+      },
       {
         "entity_type": "logon_session",
         "entity_id": "server01.corp.local|0x7c8d9e",
         "attributes": {
           "hostname": "SERVER01.corp.local"
         }
-      },
-      {
-        "entity_type": "host",
-        "entity_id": "server01.corp.local",
-        "attributes": {}
       },
       {
         "entity_type": "user",
