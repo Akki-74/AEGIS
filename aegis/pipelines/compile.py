@@ -34,13 +34,11 @@ class RuleCompiler:
         self.pipeline_name = pipeline_name
         self._pysigma_available = False
         try:
-            import sigma  # noqa: F401  # type: ignore[import-untyped]
-            from sigma.backends.elasticsearch import (  # noqa: F401  # type: ignore[import-untyped]
-                ElasticsearchQuerystringBackend,
-            )
+            import sigma  # noqa: F401  # type: ignore
+            from sigma.backends.elasticsearch import LuceneBackend  # noqa: F401  # type: ignore
             self._pysigma_available = True
             logger.info("pySigma backend loaded successfully.")
-        except ImportError:
+        except (ImportError, AttributeError):
             logger.debug("pySigma backend not installed; using native Sigma-to-Lucene compiler.")
 
     def compile_rule(self, rule_path: Path | str, backend: str = "elasticsearch") -> str:
@@ -64,13 +62,16 @@ class RuleCompiler:
 
         if self._pysigma_available:
             try:
-                from sigma.collection import SigmaCollection  # type: ignore[import-untyped]
-                from sigma.backends.elasticsearch import ElasticsearchQuerystringBackend  # type: ignore[import-untyped]
+                from sigma.collection import SigmaCollection  # type: ignore
+                from sigma.backends.elasticsearch import LuceneBackend  # type: ignore
                 from aegis.pipelines.sysmon_ecs import sysmon_ecs_pipeline
 
                 collection = SigmaCollection.from_yaml(content)
                 pipeline = sysmon_ecs_pipeline()
-                es_backend = ElasticsearchQuerystringBackend(processing_pipeline=pipeline)
+                if pipeline is not None:
+                    es_backend = LuceneBackend(processing_pipeline=pipeline)
+                else:
+                    es_backend = LuceneBackend()
                 queries = es_backend.convert(collection)
                 if queries:
                     return str(queries[0])

@@ -38,7 +38,7 @@ except ImportError:
 # ── Field-mapping tables ──────────────────────────────────────────────
 
 # General Sysmon → ECS field mappings applicable to most event types.
-_SYSMON_GENERAL_FIELD_MAP: dict[str, str] = {
+_SYSMON_GENERAL_FIELD_MAP: dict[str | None, str | list[str]] = {
     "Image": "process.executable",
     "OriginalFileName": "process.pe.original_file_name",
     "CommandLine": "process.command_line",
@@ -64,7 +64,7 @@ _SYSMON_GENERAL_FIELD_MAP: dict[str, str] = {
 
 # Hash sub-fields.  Sysmon reports a composite ``Hashes`` string; after
 # extraction these individual fields may appear.
-_SYSMON_HASH_FIELD_MAP: dict[str, str] = {
+_SYSMON_HASH_FIELD_MAP: dict[str | None, str | list[str]] = {
     "md5": "hash.md5",
     "sha1": "hash.sha1",
     "sha256": "hash.sha256",
@@ -72,7 +72,7 @@ _SYSMON_HASH_FIELD_MAP: dict[str, str] = {
 }
 
 # Event ID 10 (ProcessAccess) specific mappings.
-_SYSMON_PROCESS_ACCESS_FIELD_MAP: dict[str, str] = {
+_SYSMON_PROCESS_ACCESS_FIELD_MAP: dict[str | None, str | list[str]] = {
     "SourceImage": "process.executable",
     "TargetImage": "winlog.event_data.TargetImage",
     "GrantedAccess": "winlog.event_data.GrantedAccess",
@@ -84,7 +84,7 @@ _SYSMON_PROCESS_ACCESS_FIELD_MAP: dict[str, str] = {
 }
 
 # Event ID 3 (NetworkConnect) specific mappings.
-_SYSMON_NETWORK_FIELD_MAP: dict[str, str] = {
+_SYSMON_NETWORK_FIELD_MAP: dict[str | None, str | list[str]] = {
     "SourcePort": "source.port",
     "DestinationHostname": "destination.domain",
     "Protocol": "network.transport",
@@ -105,7 +105,7 @@ def _logsource_condition(category: str | None = None) -> LogsourceCondition:
 
 # ── Pipeline factory ─────────────────────────────────────────────────
 
-def sysmon_ecs_pipeline() -> ProcessingPipeline:
+def sysmon_ecs_pipeline() -> ProcessingPipeline | None:
     """Return a pySigma :class:`ProcessingPipeline` for Sysmon → ECS.
 
     The pipeline contains:

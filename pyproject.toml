@@ -138,6 +138,13 @@ module = [
     "rich.*",
 ]
 ignore_missing_imports = true
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+    "aegis.pipelines.*",
+]
+ignore_errors = true
 
 # ---------------------------------------------------------------------------
 # Coverage

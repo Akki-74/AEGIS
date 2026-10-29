@@ -55,6 +55,7 @@ logs/*
 !logs/.gitkeep
 *.log
 *.jsonl
+!logs/aegis_session.jsonl
 !docs/session_log.md
 
 # Scratch & Temporary Directories
