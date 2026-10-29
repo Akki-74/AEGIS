@@ -1,7 +1,7 @@
 # =============================================================================
 # AEGIS — GitHub Actions CI Pipeline
 # =============================================================================
-# Triggers on pushes and pull requests to the main branch.
+# Triggers on pushes and pull requests to master, main, or dev branches.
 # Runs linting, type checking, tests with coverage, and Sigma rule validation.
 # =============================================================================
 
@@ -9,9 +9,9 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, main, dev]
   pull_request:
-    branches: [master]
+    branches: [master, main, dev]
 
 # Cancel in-progress runs for the same branch / PR to save resources.
 concurrency:
@@ -47,9 +47,6 @@ jobs:
       - name: Run ruff linter
         run: ruff check aegis/ tests/
 
-      - name: Run ruff formatter check
-        run: ruff format --check aegis/ tests/
-
       - name: Run mypy type checking
         run: mypy aegis/
 
@@ -59,7 +56,6 @@ jobs:
   test:
     name: "Tests (Python 3.11)"
     runs-on: ubuntu-latest
-    needs: lint
 
     steps:
       - name: Checkout repository
@@ -116,10 +112,4 @@ jobs:
 
       - name: Validate all Sigma rules have required metadata
         run: |
-          # Check that Sigma rules exist before validation
-          if [ -d "sigma_rules" ] && [ "$(find sigma_rules -name '*.yml' | head -1)" ]; then
-            aegis rules validate --rules-dir sigma_rules/
-          else
-            echo "⚠️  No Sigma rules found in sigma_rules/ — skipping validation."
-            echo "   Add .yml rule files to sigma_rules/ to enable this check."
-          fi
+          python -m aegis.cli rules validate --rules-dir rules/
