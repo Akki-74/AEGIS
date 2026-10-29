@@ -23,7 +23,8 @@ def _load_rule(rel_path: str) -> dict:
 def test_lsass_access_mask_resilience() -> None:
     """Verify LSASS rule detects multiple GrantedAccess masks used by dumpers."""
     rule = _load_rule("credential_access/lsass_memory_access.yml")
-    selection = rule["detection"]["selection"]
+    detection = rule["detection"]
+    selection = detection.get("selection_target") or detection.get("selection", {})
     granted_access = selection.get("GrantedAccess", [])
 
     expected_masks = ["0x1010", "0x1410", "0x1438", "0x1FFFFF"]
