@@ -42,7 +42,7 @@ from typing import Any
 
 import networkx as nx  # type: ignore[import-untyped]
 
-from aegis.correlate.schema import Alert, Entity, EntityType
+from aegis.correlate.schema import Alert, Entity, EntityType, EvidenceType, LinkEvidence
 
 logger = logging.getLogger(__name__)
 
@@ -70,9 +70,13 @@ class AlertLinker:
         self,
         lateral_movement_window_s: int = _DEFAULT_LATERAL_WINDOW_S,
         user_activity_window_s: int = _DEFAULT_USER_ACTIVITY_WINDOW_S,
+        min_confidence: float = 0.50,
+        exclude_weak_contextual_from_merge: bool = True,
     ) -> None:
         self.lateral_movement_window_s = lateral_movement_window_s
         self.user_activity_window_s = user_activity_window_s
+        self.min_confidence = min_confidence
+        self.exclude_weak_contextual_from_merge = exclude_weak_contextual_from_merge
 
     # ── Public API ─────────────────────────────────────────────────
 
@@ -181,6 +185,10 @@ class AlertLinker:
                 link_type="process_lineage",
                 confidence=0.95,
                 temporal_distance_seconds=td,
+                evidence_type=EvidenceType.DIRECT_CAUSAL,
+                is_direct_causal=True,
+                evidence_summary=f"Direct process tree lineage ({parent_key} -> {child_key})",
+                alert_ids={alert.alert_id, parent_alerts[0].alert_id},
             )
 
         logger.debug("Process-lineage linking complete.")
@@ -234,6 +242,10 @@ class AlertLinker:
                     link_type="session_continuity",
                     confidence=0.90,
                     temporal_distance_seconds=td,
+                    evidence_type=EvidenceType.SESSION_CONTINUITY,
+                    is_direct_causal=False,
+                    evidence_summary=f"Logon session continuity ({session_key}) across {len(session_alerts)} alert(s)",
+                    alert_ids={a.alert_id for a in session_alerts},
                 )
 
         logger.debug("Session-continuity linking complete.")
@@ -301,6 +313,10 @@ class AlertLinker:
                                 link_type="lateral_movement",
                                 confidence=0.75,
                                 temporal_distance_seconds=td,
+                                evidence_type=EvidenceType.INFERRED_ASSOCIATION,
+                                is_direct_causal=False,
+                                evidence_summary=f"Inferred network lateral hop: {src_host} -> {dest_host} followed by logon in {td:.1f}s",
+                                alert_ids={alert.alert_id, logon_alert.alert_id},
                             )
 
         logger.debug("Lateral-movement linking complete.")
@@ -359,6 +375,11 @@ class AlertLinker:
                             link_type="user_activity",
                             confidence=0.60,
                             temporal_distance_seconds=td,
+                            evidence_type=EvidenceType.CONTEXTUAL_ASSOCIATION,
+                            is_direct_causal=False,
+                            evidence_summary=f"Shared user activity: {entries[0][1].username} across {host_a.entity_id} and {host_b.entity_id}",
+                            alert_ids={alert_a.alert_id, alert_b.alert_id},
+                            exclude_from_hard_clustering=self.exclude_weak_contextual_from_merge,
                         )
 
         logger.debug("User-activity linking complete.")
@@ -374,13 +395,24 @@ class AlertLinker:
         link_type: str,
         confidence: float,
         temporal_distance_seconds: float,
+        evidence_type: EvidenceType = EvidenceType.INFERRED_ASSOCIATION,
+        is_direct_causal: bool = False,
+        evidence_summary: str = "",
+        alert_ids: set[str] | None = None,
+        exclude_from_hard_clustering: bool = False,
     ) -> None:
-        """Add or update a semantically-typed edge between *u* and *v*.
+        """Add or update a semantically-typed edge with retained causal/associative evidence."""
+        aids = set(alert_ids or set())
+        evidence_entry = LinkEvidence(
+            evidence_type=evidence_type,
+            is_direct_causal=is_direct_causal,
+            confidence=confidence,
+            source_alert_id=min(aids) if aids else "",
+            target_alert_id=max(aids) if aids else "",
+            reason=evidence_summary,
+            timestamp_delta_seconds=temporal_distance_seconds,
+        )
 
-        If an edge already exists, we keep the one with the *higher*
-        confidence and add the new ``link_type`` to a set of types on
-        the edge (an edge can be explained by more than one heuristic).
-        """
         if graph.has_edge(u, v):
             data: dict[str, Any] = graph[u][v]
             existing_types: set[str] = data.setdefault(
@@ -388,16 +420,28 @@ class AlertLinker:
             )
             existing_types.add(link_type)
             data["link_types"] = existing_types
-            # Keep highest confidence.
-            data["confidence"] = max(
-                data.get("confidence", 0.0), confidence
-            )
-            # Keep smallest temporal distance.
+            data["confidence"] = max(data.get("confidence", 0.0), confidence)
             data["temporal_distance_seconds"] = min(
                 data.get("temporal_distance_seconds", float("inf")),
                 temporal_distance_seconds,
             )
-            # Preserve backward-compat single link_type as the dominant.
+            data["is_direct_causal"] = data.get("is_direct_causal", False) or is_direct_causal
+            edge_aids: set[str] = data.setdefault("alert_ids", set())
+            edge_aids.update(aids)
+            data["alert_ids"] = edge_aids
+
+            ev_records: list[dict[str, Any]] = data.setdefault("evidence_records", [])
+            ev_records.append(evidence_entry.to_dict())
+            data["evidence_records"] = ev_records
+
+            # Only mark excluded if all explaining heuristics agree
+            if "exclude_from_hard_clustering" in data:
+                data["exclude_from_hard_clustering"] = (
+                    data["exclude_from_hard_clustering"] and exclude_from_hard_clustering
+                )
+            else:
+                data["exclude_from_hard_clustering"] = exclude_from_hard_clustering
+
             data["link_type"] = max(
                 existing_types,
                 key=lambda lt: {
@@ -415,4 +459,9 @@ class AlertLinker:
                 link_types={link_type},
                 confidence=confidence,
                 temporal_distance_seconds=temporal_distance_seconds,
+                evidence_type=evidence_type.value,
+                is_direct_causal=is_direct_causal,
+                evidence_records=[evidence_entry.to_dict()],
+                alert_ids=aids,
+                exclude_from_hard_clustering=exclude_from_hard_clustering,
             )

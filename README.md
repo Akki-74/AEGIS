@@ -18,8 +18,8 @@
   <a href="https://mitre-attack.github.io/attack-navigator/"><img src="https://img.shields.io/badge/ATT%26CK%20Navigator-v4.5-orange?style=for-the-badge&logo=mitre&logoColor=white" alt="MITRE ATT&CK Navigator"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License: MIT"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/Code%20Style-Ruff-black?style=for-the-badge" alt="Ruff"></a>
-  <a href="#-evaluation-benchmarks"><img src="https://img.shields.io/badge/Noise%20Reduction-80.0%25-success?style=for-the-badge" alt="Noise Reduction 80%"></a>
-  <a href="#-evaluation-benchmarks"><img src="https://img.shields.io/badge/Triage%20Speedup-5.6x-blueviolet?style=for-the-badge" alt="Triage Speedup 5.6x"></a>
+  <a href="#-empirical-evaluation--benchmarks"><img src="https://img.shields.io/badge/Noise%20Reduction-80.0%25%20(Empirical)-success?style=for-the-badge" alt="Noise Reduction 80.0% Empirical"></a>
+  <a href="#-empirical-evaluation--benchmarks"><img src="https://img.shields.io/badge/Triage%20Model-5.6x%20(Simulated%20Hypothesis)-blueviolet?style=for-the-badge" alt="Triage Model 5.6x Simulated Hypothesis"></a>
 </p>
 
 ---
@@ -240,7 +240,10 @@ $$\text{Triage Speedup} = \frac{\text{MTTRC}_{\text{manual}}}{\text{MTTRC}_{\tex
 
 $$\text{Blast Radius Speedup} = \frac{\text{MTTBR}_{\text{manual}}}{\text{MTTBR}_{\text{aegis}}} = \frac{803.3\text{s}}{141.7\text{s}} = \mathbf{5.67\times}$$
 
-*Transparency Note: TTT results reflect automated cognitive step modeling across synthetic scenarios, not human-subject trials.*
+> [!IMPORTANT]
+> **Scientific Transparency Note on Benchmarks**:
+> - **Empirical**: Alert compression (5:1) and noise reduction (80.0%) are measured directly on repeatable raw and public datasets ([tests/fixtures/public_datasets/otrf_attack_sample.json](tests/fixtures/public_datasets/otrf_attack_sample.json)).
+> - **Simulated Hypothesis**: Triage speedups (5.6× MTTRC, 5.7× MTTBR) represent an engineering hypothesis derived from GOMS-style cognitive step modeling across 6 test scenarios. They quantify theoretical analyst keystroke/pivot savings and must be tested in live human-subject trials before being interpreted as field SLA gains.
 
 ---
 
@@ -435,8 +438,8 @@ A core requirement of defensible detection engineering is transparently acknowle
 
 | Evasion Technique | Attacker Vector | AEGIS Defensive Countermeasure | Architectural Blind Spot / Future Work |
 | :--- | :--- | :--- | :--- |
-| **PPID Spoofing** | Setting `PROC_THREAD_ATTRIBUTE_PARENT_PROCESS` to masquerade as `explorer.exe` | Parent/child temporal anomaly detection: flags instances where parent start time is *later* than child start time | Sysmon logs the user-claimed parent. True parentage requires kernel ETW (`Microsoft-Windows-Kernel-Process`) or EDR sensor telemetry. |
-| **Direct Syscalls** | Bypassing user-mode NTDLL hooks to dump LSASS memory directly | Sysmon Event ID 10 monitors kernel `ObRegisterCallbacks`, catching handle creation regardless of whether user-mode hooks were bypassed | Callbacks can be removed if the adversary executes via a vulnerable kernel driver (BYOVD attack). |
+| **PPID Spoofing** | Setting `PROC_THREAD_ATTRIBUTE_PARENT_PROCESS` to masquerade as `explorer.exe` | Flags heuristic parent/child temporal anomalies (parent start time *later* than child) and anomalous parent-child execution pairings | Timestamp checks are an incomplete heuristic: spoofing an existing long-running process (e.g. `explorer.exe` started at user logon) evades timestamp checks. Resilient attribution requires Kernel ETW (`Microsoft-Windows-Kernel-Process`) or `PsSetCreateProcessNotifyRoutineEx`. |
+| **Direct Syscalls** | Bypassing user-mode NTDLL hooks to dump LSASS memory directly | Sysmon Event ID 10 relies on kernel `ObRegisterCallbacks` to observe handle acquisition (`0x1010`, `0x1410`, `0x1FFFFF`) regardless of userland hook bypass | Event ID 10 records handle access, *not* kernel callback table integrity. If an adversary uses a Bring-Your-Own-Vulnerable-Driver (BYOVD) attack to unhook or zero kernel callback pointers, Sysmon is blinded. Requires Driver Blocklist / HVCI and ETW-TI. |
 | **LOLBin Renaming** | Renaming `certutil.exe` to `update.exe` to bypass filename filters | Focuses on command-line argument flags (`-urlcache`, `-split`, `-decode`) and network connection telemetry (Sysmon ID 3) | If an adversary writes a custom HTTP downloader without using built-in LOLBins, endpoint file download rules will not trigger. |
 | **Kerberoasting RC4 Bypass** | Requesting AES-256 tickets (`0x12`) instead of RC4 (`0x17`) | Threshold volume detection on Event ID 4769 for non-machine SPNs | High-volume single-user AES requests can be masked among normal SSO traffic; requires volume baseline tuning. |
 

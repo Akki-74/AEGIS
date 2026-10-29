@@ -67,6 +67,56 @@ class EntityType(enum.Enum):
     NETWORK_SESSION = "network_session"
 
 
+class EvidenceType(enum.Enum):
+    """Categorisation of correlation edge evidence distinguishing direct causation from association."""
+
+    DIRECT_CAUSAL = "direct_causal"  # Deterministic lineage (e.g. parent_guid -> process_guid)
+    SESSION_CONTINUITY = "session_continuity"  # Shared logon session ID on same host
+    INFERRED_ASSOCIATION = "inferred_association"  # Temporal sequence (e.g. network connection -> logon)
+    CONTEXTUAL_ASSOCIATION = "contextual_association"  # Shared user across hosts (weak signal)
+
+
+@dataclass
+class LinkEvidence:
+    """Detailed causal or associative evidence justifying a correlation edge."""
+
+    evidence_type: EvidenceType
+    is_direct_causal: bool
+    confidence: float
+    source_alert_id: str
+    target_alert_id: str
+    reason: str
+    timestamp_delta_seconds: float
+    attributes: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialise to a JSON-safe dictionary."""
+        return {
+            "evidence_type": self.evidence_type.value,
+            "is_direct_causal": self.is_direct_causal,
+            "confidence": self.confidence,
+            "source_alert_id": self.source_alert_id,
+            "target_alert_id": self.target_alert_id,
+            "reason": self.reason,
+            "timestamp_delta_seconds": self.timestamp_delta_seconds,
+            "attributes": dict(self.attributes),
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> LinkEvidence:
+        """Reconstruct a LinkEvidence instance from a dictionary."""
+        return cls(
+            evidence_type=EvidenceType(d.get("evidence_type", "inferred_association")),
+            is_direct_causal=bool(d.get("is_direct_causal", False)),
+            confidence=float(d.get("confidence", 0.5)),
+            source_alert_id=str(d.get("source_alert_id", "")),
+            target_alert_id=str(d.get("target_alert_id", "")),
+            reason=str(d.get("reason", "")),
+            timestamp_delta_seconds=float(d.get("timestamp_delta_seconds", 0.0)),
+            attributes=dict(d.get("attributes", {})),
+        )
+
+
 # ────────────────────────────────────────────────────────────────────
 # Alert
 # ────────────────────────────────────────────────────────────────────

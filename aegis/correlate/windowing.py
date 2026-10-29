@@ -121,7 +121,14 @@ class TemporalClusterer:
         linked_graph: nx.Graph,
         alerts: list[Alert],
     ) -> list[list[Alert]]:
-        """Cluster alerts into incident groups.
+        """Cluster alerts into incident groups with robust stress resilience.
+
+        Handles:
+        1. Duplicate telemetry de-duplication.
+        2. Out-of-order arriving events (sorted chronologically).
+        3. Excludes weak contextual edges from forced hard clustering.
+        4. Inactivity gap splits (timeout).
+        5. Host reboot boundaries (resets process/session continuity).
 
         Parameters
         ----------
@@ -140,17 +147,26 @@ class TemporalClusterer:
         if not alerts:
             return []
 
-        # Step 1 — Build an *alert*-level graph from the entity graph.
-        #
-        # Two alerts are connected if they share at least one entity in
-        # the linked entity graph (i.e. both contributed to edges
-        # touching that entity).
-        alert_by_id: dict[str, Alert] = {a.alert_id: a for a in alerts}
+        # Deduplicate alerts based on alert_id or semantic fingerprint
+        seen_keys: set[str] = set()
+        deduped_alerts: list[Alert] = []
+        for a in alerts:
+            # Semantic fingerprint: host + rule + timestamp + process_guid
+            fingerprint = f"{a.alert_id}|{a.hostname}|{a.rule_id}|{a.timestamp.isoformat()}|{a.process_guid}"
+            if fingerprint not in seen_keys:
+                seen_keys.add(fingerprint)
+                deduped_alerts.append(a)
 
-        # Collect which alerts touch each entity-graph edge.
+        # Ensure alerts are sorted chronologically regardless of ingest arrival order
+        sorted_alerts = sorted(deduped_alerts, key=lambda a: a.timestamp)
+        alert_by_id: dict[str, Alert] = {a.alert_id: a for a in sorted_alerts}
+
+        # Collect which alerts touch each entity-graph edge, skipping weak contextual edges
         alert_pairs: set[tuple[str, str]] = set()
 
         for _u, _v, data in linked_graph.edges(data=True):
+            if data.get("exclude_from_hard_clustering", False):
+                continue
             aid_set: set[str] = data.get("alert_ids", set())
             aid_list = sorted(aid_set)
             for i, id1 in enumerate(aid_list):
@@ -158,9 +174,9 @@ class TemporalClusterer:
                     if id1 in alert_by_id and id2 in alert_by_id:
                         alert_pairs.add((id1, id2))
 
-        # Step 2 — Union-Find with temporal window constraint.
+        # Union-Find with temporal window constraint
         ds = DisjointSet()
-        for alert in alerts:
+        for alert in sorted_alerts:
             ds.make_set(alert.alert_id)
 
         window_s = self.window_minutes * 60
@@ -172,7 +188,7 @@ class TemporalClusterer:
             if td <= window_s:
                 ds.union(a1_id, a2_id)
 
-        # Step 3 — Extract components and split on gaps.
+        # Extract components and split on gaps and reboot boundaries
         raw_groups = ds.components()
         final_groups: list[list[Alert]] = []
 
@@ -186,18 +202,27 @@ class TemporalClusterer:
             if not group_alerts:
                 continue
 
-            # Split at gaps.
+            # Split at gaps and reboot events
             current_subgroup: list[Alert] = [group_alerts[0]]
             for i in range(1, len(group_alerts)):
-                td = (
-                    group_alerts[i].timestamp
-                    - group_alerts[i - 1].timestamp
-                ).total_seconds()
-                if td > gap_s:
-                    final_groups.append(current_subgroup)
+                prev_a = group_alerts[i - 1]
+                curr_a = group_alerts[i]
+                td = (curr_a.timestamp - prev_a.timestamp).total_seconds()
+
+                # Check if current or previous event indicates a system reboot on the same host
+                is_reboot = (
+                    "reboot" in curr_a.rule_id.lower()
+                    or "system_restart" in curr_a.rule_id.lower()
+                    or curr_a.raw_event.get("winlog", {}).get("event_id") in (1074, 6005, 6006)
+                )
+
+                if td > gap_s or is_reboot:
+                    if current_subgroup:
+                        final_groups.append(current_subgroup)
                     current_subgroup = []
-                current_subgroup.append(group_alerts[i])
-            final_groups.append(current_subgroup)
+                current_subgroup.append(curr_a)
+            if current_subgroup:
+                final_groups.append(current_subgroup)
 
         # Sort groups by earliest timestamp.
         final_groups.sort(key=lambda g: g[0].timestamp)

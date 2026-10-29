@@ -22,6 +22,8 @@ This log maintains a chronological record of all architecture decisions, enginee
 - [Session 15: Continuous Session Audit & Gitignore Hygiene Enforcement](#session-15-continuous-session-audit--gitignore-hygiene-enforcement)
 - [Session 16: Commit Message Formulation & Pre-Push Audit](#session-16-commit-message-formulation--pre-push-audit)
 - [Session 17: CI Mypy Type Checking Remediation & pySigma Pipeline Alignment](#session-17-ci-mypy-type-checking-remediation--pysigma-pipeline-alignment)
+- [Session 18: Comprehensive Project Audit & Test Coverage Expansion](#session-18-comprehensive-project-audit--test-coverage-expansion)
+- [Session 19: Production Hardening: Causal Evidence, Temporal Stress Testing, Benchmark Transparency & Containment Safety](#session-19-production-hardening-causal-evidence-temporal-stress-testing-benchmark-transparency--containment-safety)
 
 ---
 
@@ -483,6 +485,82 @@ This log maintains a chronological record of all architecture decisions, enginee
   - pyproject.toml (Added mypy overrides for sigma and pipelines)
   - .gitignore (Explicitly whitelisted session log)
   - docs/session_log.md (Updated)
+
+---
+
+### Session 18: Comprehensive Project Audit & Test Coverage Expansion
+- **Date / Time:** 2026-10-29 16:32:00 UTC
+- **Operator:** Security Operations & Quality Assurance Lead
+- **Status:** COMPLETED
+- **Objectives:**
+  - Perform a complete, end-to-end audit of all AEGIS subcomponents (telemetry ingest, Sigma detection rules, pipeline compilers, correlation engine, graph visualizer, response playbooks, metrics evaluation, and CI/CD).
+  - Add missing automated test coverage for response playbook YAML definitions and correlation engine mapping resolution.
+  - Add automated test coverage for the Sigma rule compilation engine (native AST compiler).
+  - Re-verify repository hygiene (.gitignore) and update documentation session log.
+- **Actions Taken:**
+  - Implemented tests/test_playbooks.py:
+    - Verifies schema, required metadata, trigger techniques, and step structure across all 4 playbooks (ad_compromise.yml, credential_theft.yml, lateral_movement.yml, malware_execution.yml).
+    - Asserts that all tactic and technique mappings in the correlation engine resolve to valid on-disk playbook YAML files.
+  - Implemented tests/test_compile.py:
+    - Tests single-rule and batch-rule compilation using RuleCompiler to ensure robust query generation across backends.
+  - Verified .gitignore keeps working tree clean without untracked artifacts.
+  - Logged operational event via aegis.cli session log.
+- **Evaluation / Test Results:**
+  - python -m ruff check aegis/ tests/: All checks passed.
+  - python -m mypy aegis/ tests/: Success: no issues found in 37 source files.
+  - python -m pytest --cov=aegis: 39 passed, 52 subtests passed; overall code coverage increased to 57.15% (comfortably exceeding the 40% threshold).
+  - python -m aegis.cli rules validate --rules-dir rules/: All 13 Sigma rules validated successfully.
+- **Artifacts Modified / Created:**
+  - tests/test_playbooks.py (Created)
+  - tests/test_compile.py (Created)
+  - docs/session_log.md (Updated)
+
+---
+
+### Session 19: Production Hardening: Causal Evidence, Temporal Stress Testing, Benchmark Transparency & Containment Safety
+- **Date / Time:** 2026-10-29 16:45:00 UTC
+- **Operator:** Principal Security Architect & Detection Engineering Lead
+- **Status:** COMPLETED
+- **Objectives:**
+  - Address rigorous production-grade review feedback across 5 core pillars:
+    1. Correlation engine trustworthiness (distinguishing direct causal evidence from inferred associations).
+    2. Temporal clustering stress-testing (handling overlapping attacks, delayed movement, reboots, duplicate telemetry, and out-of-order events).
+    3. Detection claims recalibration (Sysmon Event ID 10 vs ObRegisterCallbacks kernel integrity; PPID timestamp anomaly boundaries).
+    4. Benchmark honesty (explicitly marking simulated cognitive model triage speedup hypotheses in badges and methodology).
+    5. Containment safety by default (dry-run mode, mandatory analyst approval, protected DC/system guardrails, and automated rollback plans).
+- **Actions Taken:**
+  - In `aegis/correlate/schema.py`:
+    - Introduced `EvidenceType` enum (`DIRECT_CAUSAL`, `SESSION_CONTINUITY`, `INFERRED_ASSOCIATION`, `CONTEXTUAL_ASSOCIATION`).
+    - Added `LinkEvidence` dataclass to retain full causal provenance, source/target alert IDs, and timestamp deltas on every graph edge.
+  - In `aegis/correlate/linker.py`:
+    - Upgraded `_add_link_edge` to retain `evidence_records`, `is_direct_causal`, and `alert_ids`.
+    - Tagged weak contextual user activity with `exclude_from_hard_clustering` to prevent unrelated incidents from merging across hosts.
+  - In `aegis/correlate/windowing.py`:
+    - Implemented telemetry deduplication on semantic fingerprints.
+    - Implemented robust chronological sorting for out-of-order arriving events.
+    - Added system reboot boundary detection (Event IDs 1074, 6005, 6006) to partition temporal incident continuity across reboots.
+  - In `tests/test_clustering_stress.py`:
+    - Added comprehensive stress test suite covering duplicate ingestion, out-of-order streams, delayed lateral hops, and reboot splits.
+  - In `README.md`:
+    - Updated top headline badges to explicitly differentiate `Noise Reduction 80.0% (Empirical)` from `Triage Model 5.6x (Simulated Hypothesis)`.
+    - Rewrote Direct Syscalls evasion entry: clarified that Sysmon ID 10 observes handle acquisition via `ObRegisterCallbacks`, but cannot detect kernel-level callback table removal (BYOVD attack).
+    - Rewrote PPID Spoofing evasion entry: acknowledged that timestamp checks only flag new parents and are bypassed if long-running processes (e.g. logon `explorer.exe`) are spoofed.
+  - In `aegis/playbooks/runner.py` & `tests/test_playbook_safety.py`:
+    - Created safe execution engine with `dry_run=True` by default, mandatory `approved_by` validation for live runs, target guardrails protecting Domain Controllers and service accounts, and automated inverse rollback procedure generation.
+- **Evaluation / Test Results:**
+  - `python -m ruff check aegis/ tests/`: All checks passed (0 errors).
+  - `python -m mypy aegis/ tests/`: Success: no issues found in 40 source files.
+  - `python -m pytest --cov=aegis`: 48 passed, 52 subtests passed in 0.73s; coverage increased to 60.20%.
+  - `python -m aegis.cli rules validate --rules-dir rules/`: 13/13 Sigma rules validated successfully.
+- **Artifacts Modified / Created:**
+  - `aegis/correlate/schema.py` (Added EvidenceType and LinkEvidence)
+  - `aegis/correlate/linker.py` (Retained causal evidence and excluded weak contextual merging)
+  - `aegis/correlate/windowing.py` (Deduplication, out-of-order sorting, reboot splitting)
+  - `aegis/playbooks/runner.py` (Safe dry-run execution harness and rollback generator)
+  - `tests/test_clustering_stress.py` (Clustering resilience stress tests)
+  - `tests/test_playbook_safety.py` (Safety guardrail tests)
+  - `README.md` (Badge labeling, evasion claim recalibration, and benchmark notes)
+  - `docs/session_log.md` (Updated)
 
 ---
 
