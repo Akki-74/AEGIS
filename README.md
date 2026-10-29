@@ -16,6 +16,8 @@
   <a href="https://github.com/Akki-74/AEGIS/actions/workflows/ci.yml"><img src="https://github.com/Akki-74/AEGIS/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.11%2B-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
   <a href="https://mitre-attack.github.io/attack-navigator/"><img src="https://img.shields.io/badge/ATT%26CK%20Navigator-v4.5-orange?style=for-the-badge&logo=mitre&logoColor=white" alt="MITRE ATT&CK Navigator"></a>
+  <a href="#-testing--continuous-integration"><img src="https://img.shields.io/badge/Tests-48%20Passed%20(52%20Subtests)-brightgreen?style=for-the-badge" alt="48 Tests Passed"></a>
+  <a href="#-testing--continuous-integration"><img src="https://img.shields.io/badge/Coverage-60.2%25-brightgreen?style=for-the-badge" alt="Coverage 60.2%"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License: MIT"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/Code%20Style-Ruff-black?style=for-the-badge" alt="Ruff"></a>
   <a href="#-empirical-evaluation--benchmarks"><img src="https://img.shields.io/badge/Noise%20Reduction-80.0%25%20(Empirical)-success?style=for-the-badge" alt="Noise Reduction 80.0% Empirical"></a>
@@ -31,16 +33,16 @@
 - [🏗️ Architectural Architecture & Data Pipeline](#️-architectural-architecture--data-pipeline)
 - [✨ Key Technical Innovations](#-key-technical-innovations)
   - [1. Resilient Behavioral Sigma Rules](#1-resilient-behavioral-sigma-rules)
-  - [2. Graph-Based Entity Resolution](#2-graph-based-entity-resolution)
-  - [3. Multi-Vector Causal Semantic Linker](#3-multi-vector-causal-semantic-linker)
-  - [4. Temporal Sliding-Window Clustering](#4-temporal-sliding-window-clustering)
+  - [2. Graph-Based Entity Resolution & Disambiguation](#2-graph-based-entity-resolution--disambiguation)
+  - [3. Multi-Vector Causal Semantic Linker & Evidence Retention](#3-multi-vector-causal-semantic-linker--evidence-retention)
+  - [4. Stress-Resilient Temporal Clustering](#4-stress-resilient-temporal-clustering)
   - [5. Multi-Factor Kill-Chain Risk Scoring](#5-multi-factor-kill-chain-risk-scoring)
   - [6. Zero-Server Interactive Attack Graph Visualizer](#6-zero-server-interactive-attack-graph-visualizer)
-  - [7. Automated YAML Containment Playbooks](#7-automated-yaml-containment-playbooks)
+  - [7. Safety-First Incident Response Playbook Harness](#7-safety-first-incident-response-playbook-harness)
 - [🎯 MITRE ATT&CK Detection Matrix](#-mitre-attck-detection-matrix)
 - [📊 Empirical Evaluation & Benchmarks](#-empirical-evaluation--benchmarks)
-  - [Controlled Time-to-Triage (TTT) Study](#controlled-time-to-triage-ttt-study)
-  - [Noise Reduction & Compression Ratio](#noise-reduction--compression-ratio)
+  - [Controlled Time-to-Triage (TTT) Study](#time-to-triage-ttt-study-simulated-cognitive-model-n6-scenarios)
+  - [Noise Reduction & Compression Ratio](#empirical-performance-summary)
 - [⚡ Quickstart & 1-Command Live Demo](#-quickstart--1-command-live-demo)
 - [💻 Production CLI Command Reference](#-production-cli-command-reference)
 - [📁 Repository Directory Structure](#-repository-directory-structure)
@@ -57,7 +59,7 @@
 
 Modern Security Operations Centers (SOCs) drown in disconnected alert streams: a single intrusion generates dozens of atomic notifications across disparate sensors. Analysts are forced to manually correlate process IDs, logon sessions, and network timestamps across hosts to reconstruct what occurred.
 
-AEGIS solves this by **reconstructing the adversary's causal attack graph in real time**. It ingests normalized endpoint (Sysmon, Windows Security, PowerShell) and network telemetry (Zeek), executes robust behavioral Sigma rules, resolves composite multi-host entities, links events along causal vectors, and outputs actionable, interactive incident graphs paired with containment playbooks.
+AEGIS solves this by **reconstructing the adversary's causal attack graph in real time**. It ingests normalized endpoint (Sysmon, Windows Security, PowerShell) and network telemetry (Zeek), executes robust behavioral Sigma rules, resolves composite multi-host entities, links events along verified causal vectors, and outputs actionable, interactive incident graphs paired with containment playbooks.
 
 ---
 
@@ -79,7 +81,7 @@ AEGIS solves this by **reconstructing the adversary's causal attack graph in rea
 |  * 1 Synthesized Incident Graph (Attack Score: 92.5/100, CRITICAL)                                 |
 |  * Root Cause: WS01 (PID 4812, User: DOMAIN\victim_user)                                           |
 |  * Blast Radius: 2 Hosts (WS01, DC01), 3 Accounts, 5 Techniques                                     |
-|  * Automated Containment Playbook Generated in < 2 seconds                                         |
+|  * Automated Safe Dry-Run Containment Playbook Generated in < 2 seconds                            |
 +----------------------------------------------------------------------------------------------------+
 ```
 
@@ -109,7 +111,8 @@ The AEGIS pipeline is divided into five strictly decoupled, modular stages:
 │ 2. DETECTION COMPILATION & EVALUATION (pySigma AST Engine)                             │
 │    • 13 High-Fidelity Behavioral Sigma Rules (Defense Evasion, Credentials, AD CS)     │
 │    • Custom pySigma Sysmon-to-ECS Processing Pipeline                                  │
-│    • In-Memory AST Evaluator + SIEM Query Compiler (Elasticsearch / OpenSearch Query DSL) │
+│    • Dual Compilation Engine: LuceneBackend (pySigma) + Native AST Lucene/ES Compiler  │
+│    • 26 Positive and Negative Fixture Test Suites per Rule                             │
 └────────────────────────────────────────┬───────────────────────────────────────────────┘
                                          │ Raw Alert Stream
                                          ▼
@@ -118,9 +121,11 @@ The AEGIS pipeline is divided into five strictly decoupled, modular stages:
 │    ┌──────────────────────────────────────────────────────────────────────────────┐    │
 │    │ a. Entity Resolution: Composite Host+GUID keys, Host+LUID, UPN Normalization │    │
 │    ├──────────────────────────────────────────────────────────────────────────────┤    │
-│    │ b. Semantic Linker: Lineage (0.95), Session (0.90), Lateral Movement (0.75)  │    │
+│    │ b. Causal Linker: Process Lineage (0.95 Direct Causal), Session (0.90),      │    │
+│    │    Inferred Lateral Movement (0.75), Contextual User Activity (0.60 Isolated)│    │
 │    ├──────────────────────────────────────────────────────────────────────────────┤    │
-│    │ c. Temporal Windowing: DisjointSet Union-Find with Gap Silence Timeout       │    │
+│    │ c. Temporal Windowing: Deduplication, Chronological Sorting, DisjointSet      │    │
+│    │    Union-Find, Inactivity Gap Silence Timeout & Host Reboot Boundaries       │    │
 │    ├──────────────────────────────────────────────────────────────────────────────┤    │
 │    │ d. Multi-Factor Risk Scoring: Kill-Chain (30%) + Technique (25%) +           │    │
 │    │    Privilege (25%) + Asset Criticality (20%)                                 │    │
@@ -132,8 +137,9 @@ The AEGIS pipeline is divided into five strictly decoupled, modular stages:
 │ 4. VISUAL SYNTHESIS & CONTAINMENT AUTOMATION                                           │
 │    • Zero-Server Cytoscape.js Interactive Attack Graph Report (Self-Contained HTML)   │
 │    • Chronological Attack Timeline & Provenance Inspector Drawer                       │
-│    • Automated YAML Containment Playbooks (Host Isolation, Credential Revocation)      │
-│    • Pre-Registered Empirical Evaluation Benchmarks (Noise Reduction, TTT Speedup)    │
+│    • Safe Containment Runner: Dry-Run by default, Senior Approvals, DC Protection,    │
+│      and Automated Inverse Rollback/Recovery Plans                                     │
+│    • Public Dataset Evaluated: OTRF Security Datasets E2E Verification                 │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -148,7 +154,7 @@ Rather than matching static filenames or hashes that an adversary can trivially 
 - **LOLBin Abuse**: Detects `certutil`, `mshta`, and `rundll32` through parameter anomalies (`-urlcache`, `-split`, script protocols like `javascript:`, `vbscript:`) and abnormal parent-child execution chains.
 - **Active Directory Exploitation**: Identifies Kerberoasting via RC4-HMAC ticket requests (Event ID 4769 `TicketEncryptionType=0x17`) filtering out computer accounts (`$`), and AS-REP Roasting (Event ID 4768 pre-authentication type 0).
 
-### 2. Graph-Based Entity Resolution
+### 2. Graph-Based Entity Resolution & Disambiguation
 To prevent entity collision across enterprise networks:
 - **Process Identity**: Sysmon Process GUIDs recycle across hypervisor reboots and clones. AEGIS generates an immutable composite key:
   $$\text{Key}_{\text{proc}} = \text{hostname} \mathbin{\Vert} \text{process\_guid}$$
@@ -156,15 +162,20 @@ To prevent entity collision across enterprise networks:
   $$\text{Key}_{\text{logon}} = \text{hostname} \mathbin{\Vert} \text{logon\_id}$$
 - **Identity Canonicalization**: Automatically unifies Downlevel NetBIOS (`CORP\jdoe`), UPN (`jdoe@corp.local`), and bare usernames (`jdoe`) to prevent fragmented user subgraphs.
 
-### 3. Multi-Vector Causal Semantic Linker
-AEGIS builds directed attack edges between alerts using causal, evidence-backed relationships:
-- **Process Lineage ($\text{Confidence} = 0.95$)**: Alerts sharing direct parent-child process relationships (`ParentProcessGuid == ProcessGuid`).
-- **Logon Session Continuity ($\text{Confidence} = 0.90$)**: Alerts originating from the same authenticated logon session on a given host.
-- **Lateral Movement ($\text{Confidence} = 0.75$)**: Network logon events (Event ID 4624 Type 3) connecting source workstations to target servers within a temporal window.
-- **User Activity ($\text{Confidence} = 0.60$)**: Auxiliary actions carried out by the same principal across hosts.
+### 3. Multi-Vector Causal Semantic Linker & Evidence Retention
+AEGIS builds directed attack edges between alerts, retaining the underlying evidentiary justification and distinguishing direct causation from inferred associations:
+- **Direct Causal Evidence (`DIRECT_CAUSAL`, Confidence = 0.95)**: Deterministic kernel process lineage (`ParentProcessGuid` $\rightarrow$ `ProcessGuid`).
+- **Session Continuity (`SESSION_CONTINUITY`, Confidence = 0.90)**: Alerts originating from the exact same authenticated logon session on a given host.
+- **Inferred Lateral Movement (`INFERRED_ASSOCIATION`, Confidence = 0.75)**: Network connection followed by logon on the destination host within a strict temporal window.
+- **Contextual User Activity (`CONTEXTUAL_ASSOCIATION`, Confidence = 0.60)**: Weak administrative associations. Tagged with `exclude_from_hard_clustering=True` so they provide visual context in the attack graph **without collapsing unrelated incidents across hosts**.
+- **Edge Evidence Schema**: Every edge stores contributing `LinkEvidence` objects with source/target alert IDs, timestamps, and causal summaries.
 
-### 4. Temporal Sliding-Window Clustering
-Alerts are ingested into a temporal sliding window ($W_{size} = 3600\text{s}$) managed by a disjoint-set (Union-Find) algorithm with path compression. A configurable silence gap timeout ($T_{gap} = 1800\text{s}$) automatically terminates clusters during adversary dormancy, preventing unrelated multi-day activity from improperly merging into a single incident.
+### 4. Stress-Resilient Temporal Clustering
+Alerts are clustered into coherent incidents using a stress-hardened sliding-window DisjointSet algorithm:
+- **Telemetry Deduplication**: Incoming alerts with identical semantic fingerprints (`host + rule + timestamp + process_guid`) are deduplicated.
+- **Chronological Stream Sorting**: Events arriving out-of-order due to network shipper jitter are sorted chronologically before component evaluation.
+- **Inactivity Gap Silence Timeout ($T_{gap} = 10\text{m}$)**: Automatically terminates clusters during adversary dormancy, preventing unrelated multi-day activity from improperly merging.
+- **Host Reboot Boundary Partitioning**: Detects system restart events (Event IDs 1074, 6005, 6006) and splits temporal continuity across reboots.
 
 ### 5. Multi-Factor Kill-Chain Risk Scoring
 Incidents are scored on a normalized scale ($0 \text{ to } 100$) using a multi-factor risk model:
@@ -178,16 +189,16 @@ Where:
 ### 6. Zero-Server Interactive Attack Graph Visualizer
 AEGIS compiles correlated incidents into a **standalone, self-contained HTML report** powered by Cytoscape.js. No web server, database, or backend service is required. 
 - **Dark Theme Cybersecurity UI**: Color-coded nodes by entity type (Compromised Host, Process, User Account, Stolen Credential, Domain Controller).
-- **Edge Weight & Type Coloring**: Visual distinction between process lineage, logon session continuity, and lateral movement hops.
+- **Edge Weight & Type Coloring**: Visual distinction between direct process lineage, logon session continuity, and lateral movement hops.
 - **Interactive Inspector Drawer**: Click on any node or edge to view full telemetry details, command lines, access masks, and raw event timestamps.
 - **Chronological Slider**: Step through the attack campaign sequentially from initial ingress to domain escalation.
 
-### 7. Automated YAML Containment Playbooks
-Every generated incident automatically generates machine-executable containment templates:
-- Immediate host network isolation via firewall or endpoint sensor.
-- Targeted active process termination with command-line arguments and process GUIDs.
-- Active Directory user account suspension and Kerberos ticket purge (`klist purge`).
-- Certificate revocation recommendations for compromised AD CS templates.
+### 7. Safety-First Incident Response Playbook Harness
+Every incident maps to actionable YAML response playbooks ([aegis/playbooks/runner.py](aegis/playbooks/runner.py)) with production-grade safety guardrails:
+- **Dry-Run by Default (`dry_run=True`)**: Generates safe simulation recommendations and execution previews without altering live infrastructure.
+- **Senior Approver Signature Required**: Live execution (`dry_run=False`) requires an authorized `approved_by: str` analyst identity; otherwise execution is blocked.
+- **Critical Asset Guardrails**: Automatically blocks isolation of Domain Controllers (`DC01`, `DC02`), core gateways (`DNS01`), and system accounts (`SYSTEM`, `krbtgt`, machine accounts `$`) unless overridden with explicit authorization.
+- **Automated Rollback & Recovery Procedures**: Every containment action automatically outputs its exact inverse recovery procedure (e.g. `unisolate_endpoint` via firewall reset, `restore_account_access`).
 
 ---
 
@@ -263,7 +274,7 @@ python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
 # Install dependencies in editable mode
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 ### 2. Run the Interactive End-to-End Demo
@@ -356,29 +367,46 @@ AEGIS/
 │   ├── config.py                    # Dataclass configuration management
 │   ├── session_logger.py            # Operational JSONL and plaintext session logging
 │   ├── correlate/                   # Alert correlation pipeline
-│   │   ├── schema.py                # Alert, Entity, Incident data models
+│   │   ├── schema.py                # Alert, Entity, LinkEvidence, Incident models
 │   │   ├── entity_resolution.py     # GUID/LogonID composite keys, UPN normalization
-│   │   ├── linker.py                # Semantic linking (Lineage, Session, Lateral Movement)
-│   │   ├── windowing.py             # DisjointSet Union-Find & sliding-window clustering
+│   │   ├── linker.py                # Causal evidence linker (Lineage, Session, Lateral)
+│   │   ├── windowing.py             # DisjointSet Union-Find & stress-tested clustering
 │   │   ├── scoring.py               # Multi-factor risk scoring & blast radius
 │   │   └── engine.py                # Correlation pipeline orchestrator
 │   ├── pipelines/                   # pySigma Sysmon -> ECS pipeline & query compiler
+│   │   ├── compile.py               # RuleCompiler (LuceneBackend + Native AST fallback)
+│   │   └── sysmon_ecs.py            # Sysmon to ECS field mapping tables & pipeline
 │   ├── graph/                       # Cytoscape.js attack graph & HTML report generator
-│   │   └── templates/               # Jinja2 responsive dark-theme HTML template
+│   │   ├── builder.py               # Incident graph networkx builder
+│   │   └── renderer.py              # Standalone dark-theme HTML generator
 │   ├── ingest/                      # SwiftOnSecurity Sysmon XML, Winlogbeat, Zeek configs
 │   ├── playbooks/                   # Actionable YAML response playbooks
+│   │   ├── runner.py                # Safe PlaybookRunner (Dry-Run, Guardrails, Rollback)
+│   │   ├── ad_compromise.yml        # Active Directory containment playbook
+│   │   ├── credential_theft.yml     # LSASS & Kerberos ticket containment playbook
+│   │   ├── lateral_movement.yml     # Host isolation & network containment playbook
+│   │   └── malware_execution.yml    # Process termination & memory capture playbook
 │   └── eval/                        # Coverage matrix, noise reduction, FP & TTT analyzers
 ├── tests/                           # Complete test suite & telemetry fixtures
-│   ├── fixtures/malicious/          # Attack chain EVTX-simulated fixtures
-│   ├── fixtures/benign/             # Administrative baseline logs
+│   ├── fixtures/                    # Telemetry fixtures
+│   │   ├── malicious/               # Attack chain EVTX-simulated fixtures
+│   │   ├── benign/                  # Administrative baseline logs
+│   │   ├── public_datasets/         # Public OTRF Security Datasets attack sample
+│   │   └── rules/                   # 26 Positive and negative fixtures per rule
 │   ├── test_rules.py                # Rule metadata, UUID, and ATT&CK tag validation
+│   ├── test_rule_fixtures.py        # Positive/negative fixture verification per rule
+│   ├── test_public_dataset.py       # End-to-end detection on public OTRF dataset
 │   ├── test_entity_resolution.py    # Entity de-duplication tests
-│   ├── test_linker.py               # Semantic edge linking tests
+│   ├── test_linker.py               # Semantic edge linking & evidence tests
 │   ├── test_windowing.py            # Union-Find and gap timeout tests
+│   ├── test_clustering_stress.py    # Stress tests (Duplicates, Out-of-order, Reboots, Delays)
 │   ├── test_scoring.py              # Multi-factor scoring tests
 │   ├── test_correlation_engine.py   # End-to-end integration tests
 │   ├── test_graph.py                # Cytoscape JSON and HTML render tests
-│   └── test_resilience.py           # Evasion variant resilience tests
+│   ├── test_resilience.py           # Evasion variant resilience tests
+│   ├── test_compile.py              # Single and batch Sigma-to-Lucene compilation tests
+│   ├── test_playbooks.py            # Playbook schema and mapping integrity tests
+│   └── test_playbook_safety.py      # Playbook runner dry-run, approval & rollback tests
 ├── docs/                            # Comprehensive documentation & research writeups
 │   ├── methodology.md               # Formal research question, architecture, limits
 │   ├── interview_checklist.md       # Technical interview defense cheat sheet
@@ -390,7 +418,7 @@ AEGIS/
 ├── scripts/
 │   └── demo.py                      # Runnable end-to-end console demonstration
 ├── run_tests.py                     # Unified test discovery runner
-├── pyproject.toml                   # Modern packaging & Ruff/pytest configurations
+├── pyproject.toml                   # Modern packaging & Ruff/pytest/mypy configurations
 ├── config.yaml.example              # Sample configuration file
 ├── LICENSE                          # MIT License
 └── README.md                        # Project documentation
@@ -400,24 +428,48 @@ AEGIS/
 
 ## 🧪 Testing & Continuous Integration
 
-AEGIS includes a zero-dependency test runner (`run_tests.py`) capable of discovering and executing both `unittest.TestCase` and standalone test functions:
+AEGIS includes a zero-dependency test runner (`run_tests.py`) and full `pytest` integration covering 14 test modules:
 
 ```bash
-python run_tests.py
+# Run complete test suite with coverage report
+python -m pytest --cov=aegis
 ```
 
 ```text
-Ran 31 tests in 1.517s
-OK - ALL TESTS PASSED!
+============================= test session starts ==============================
+collected 48 items
+
+tests/test_clustering_stress.py ....                                     [  8%]
+tests/test_compile.py ..                                                 [ 12%]
+tests/test_correlation_engine.py ..                                      [ 16%]
+tests/test_entity_resolution.py ......                                   [ 29%]
+tests/test_graph.py ...                                                  [ 35%]
+tests/test_linker.py ...                                                 [ 41%]
+tests/test_playbook_safety.py .....                                      [ 52%]
+tests/test_playbooks.py ..                                               [ 56%]
+tests/test_public_dataset.py .                                           [ 58%]
+tests/test_resilience.py ....                                            [ 66%]
+tests/test_rule_fixtures.py ...                                          [ 72%]
+tests/test_rules.py ......                                               [ 85%]
+tests/test_scoring.py ....                                               [ 93%]
+tests/test_windowing.py ...                                              [100%]
+
+================== 48 passed, 52 subtests passed in 0.77s ===================
+Required test coverage of 40.0% reached. Total coverage: 60.20%
 ```
 
 ### Test Suite Breakdown
 - **Rule Metadata & Syntax**: Validates all 13 rules for RFC 4122 UUIDs, valid ATT&CK tags, and syntax conformances (`test_rules.py`).
+- **Rule Positive & Negative Fixtures**: 26 fixtures verifying True-Positive and False-Positive behavior per rule (`test_rule_fixtures.py`).
+- **Public Dataset E2E Verification**: End-to-end execution on public OTRF Security Datasets (`test_public_dataset.py`).
+- **Clustering Stress Resilience**: Validates telemetry deduplication, out-of-order streams, delayed movement, and reboot boundary partitioning (`test_clustering_stress.py`).
 - **Entity Resolution & Collisions**: Tests multi-host Process GUID and Logon ID isolation (`test_entity_resolution.py`).
-- **Semantic Edge Generation**: Verifies process lineage, session continuity, and lateral movement hops (`test_linker.py`).
+- **Causal Evidence & Edge Linking**: Verifies process lineage, session continuity, lateral movement, and contextual user activity isolation (`test_linker.py`).
 - **Sliding-Window & Disjoint Sets**: Verifies cluster formation and inactivity timeout splits (`test_windowing.py`).
 - **Risk Scoring & Criticality**: Validates multi-factor scoring against high-risk and low-risk baselines (`test_scoring.py`).
 - **Adversary Resilience**: Validates evasion resistance against mask alterations, renamed LOLBins, and obfuscated cradles (`test_resilience.py`).
+- **Playbook Schema & Safety Harness**: Tests YAML schema parsing, mapping resolution, dry-run defaults, senior approvals, DC protection, and automated rollback generation (`test_playbooks.py`, `test_playbook_safety.py`).
+- **Rule Compilation**: Tests single-rule and batch AST compilation to Lucene / Elasticsearch queries (`test_compile.py`).
 
 ---
 

@@ -24,6 +24,7 @@ This log maintains a chronological record of all architecture decisions, enginee
 - [Session 17: CI Mypy Type Checking Remediation & pySigma Pipeline Alignment](#session-17-ci-mypy-type-checking-remediation--pysigma-pipeline-alignment)
 - [Session 18: Comprehensive Project Audit & Test Coverage Expansion](#session-18-comprehensive-project-audit--test-coverage-expansion)
 - [Session 19: Production Hardening: Causal Evidence, Temporal Stress Testing, Benchmark Transparency & Containment Safety](#session-19-production-hardening-causal-evidence-temporal-stress-testing-benchmark-transparency--containment-safety)
+- [Session 20: Comprehensive Technical Documentation & README Modernization](#session-20-comprehensive-technical-documentation--readme-modernization)
 
 ---
 
@@ -560,6 +561,35 @@ This log maintains a chronological record of all architecture decisions, enginee
   - `tests/test_clustering_stress.py` (Clustering resilience stress tests)
   - `tests/test_playbook_safety.py` (Safety guardrail tests)
   - `README.md` (Badge labeling, evasion claim recalibration, and benchmark notes)
+  - `docs/session_log.md` (Updated)
+
+---
+
+### Session 20: Comprehensive Technical Documentation & README Modernization
+- **Date / Time:** 2026-10-29 17:00:00 UTC
+- **Operator:** Security Operations & Repository Documentation Lead
+- **Status:** COMPLETED
+- **Objectives:**
+  - Modernize repository `README.md` to comprehensively showcase all architecture components, test harness expansions, causal linking innovations, clustering stress resilience, and containment safety controls.
+  - Synchronize directory structure diagram, CLI reference, and testing breakdown with actual on-disk files and 48 passed tests / 60.20% coverage.
+  - Re-verify repository hygiene (.gitignore) and record operational session event.
+- **Actions Taken:**
+  - In `README.md`:
+    - Updated top badges: Added active passing test suite badge (`48 Passed (52 Subtests)`) and code coverage badge (`Coverage 60.2%`).
+    - Expanded Section 3 (Multi-Vector Causal Semantic Linker): Documented `EvidenceType` (`DIRECT_CAUSAL`, `SESSION_CONTINUITY`, `INFERRED_ASSOCIATION`, `CONTEXTUAL_ASSOCIATION`), evidence schema, and isolation of weak contextual edges to prevent false incident merging.
+    - Expanded Section 4 (Stress-Resilient Temporal Clustering): Documented telemetry deduplication, chronological stream sorting for out-of-order events, and host reboot boundary partitioning.
+    - Expanded Section 7 (Safety-First Playbook Harness): Documented `PlaybookRunner` dry-run default mode, mandatory senior approval signatures, DC/system asset guardrails, and automated inverse rollback/recovery procedures.
+    - Updated Repository Directory Structure tree to mirror all active source and test modules (`tests/test_clustering_stress.py`, `tests/test_compile.py`, `tests/test_playbook_safety.py`, `tests/test_playbooks.py`, `tests/fixtures/rules/`, `tests/fixtures/public_datasets/`).
+    - Updated Test Suite Breakdown to document all 14 test modules and exact test execution outputs.
+  - Verified `.gitignore` continues to maintain clean workspace without untracked artifact pollution.
+  - Logged operational event via `aegis.cli session log`.
+- **Evaluation / Test Results:**
+  - `python -m ruff check aegis/ tests/`: All checks passed.
+  - `python -m mypy aegis/ tests/`: Success: no issues found in 40 source files.
+  - `python -m pytest --cov=aegis`: 48 passed, 52 subtests passed in 0.77s (60.20% coverage).
+  - `python -m aegis.cli rules validate --rules-dir rules/`: 13/13 rules validated with 100% pass rate.
+- **Artifacts Modified / Created:**
+  - `README.md` (Updated and expanded)
   - `docs/session_log.md` (Updated)
 
 ---
