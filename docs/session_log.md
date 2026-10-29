@@ -11,6 +11,7 @@ This log maintains a chronological record of all architecture decisions, enginee
 - [Session 4: Graph Visualizer & Incident Response Playbooks](#session-4-graph-visualizer--incident-response-playbooks)
 - [Session 5: End-to-End Evaluation & Verification](#session-5-end-to-end-evaluation--verification)
 - [Session 6: Automated Session Logging Subsystem](#session-6-automated-session-logging-subsystem)
+- [Session 7: Open-Source Licensing, GitHub README & Per-Turn Session Maintenance](#session-7-open-source-licensing-github-readme--per-turn-session-maintenance)
 
 ---
 
@@ -119,6 +120,35 @@ This log maintains a chronological record of all architecture decisions, enginee
   - Output formats:
     - Human-readable plaintext audit trail: `logs/aegis_session.log`
     - Structured machine-parseable JSON Lines: `logs/aegis_session.jsonl`
+
+---
+
+### Session 7: Open-Source Licensing, GitHub README & Per-Turn Session Maintenance
+- **Date / Time:** 2026-10-29 14:24:00 UTC
+- **Operator:** Detection Engineering Lead & Assistant
+- **Status:** COMPLETED
+- **Objectives:**
+  - Author a production-grade, GitHub-ready `README.md` with CI badges, architecture schematics, evaluation benchmarks, and CLI documentation.
+  - Establish open-source licensing via standard MIT License (`LICENSE`).
+  - Formally enforce mandatory per-prompt session log maintenance across both markdown documentation (`docs/session_log.md`) and operational runtime logs (`logs/aegis_session.log` / `logs/aegis_session.jsonl`).
+- **Actions Taken:**
+  - Created root `LICENSE` file under MIT terms.
+  - Rewrote `README.md` with:
+    - Status badges (CI, Python 3.11+, Navigator v4.5, MIT License, Ruff, 80% Noise Reduction).
+    - ASCII platform architecture diagram.
+    - Quickstart instructions and 1-command demo walkthrough (`python scripts/demo.py`).
+    - Empirical evaluation table (Noise reduction 80%, TTT 5.6x speedup, Purity 96.4%, FP rate <0.2 host-day).
+    - Complete CLI command reference and full repository directory map.
+  - Verified that all 31 unit, integration, and resilience tests pass without regression.
+  - Appended persistent session records via `aegis.session_logger.SessionLogger`.
+- **Decisions & Observations:**
+  - Guaranteed that every subsequent prompt and development turn automatically logs its objectives, actions taken, and verification results to prevent drift and provide complete traceability.
+- **Artifacts Modified / Created:**
+  - `LICENSE`
+  - `README.md`
+  - `docs/session_log.md`
+  - `logs/aegis_session.log`
+  - `logs/aegis_session.jsonl`
 
 ---
 
