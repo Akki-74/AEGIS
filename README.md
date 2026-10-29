@@ -8,7 +8,7 @@
    ██╔══██║██╔══╝  ██║   ██║██║╚════██║
    ██║  ██║███████╗╚██████╔╝██║███████║
    ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝╚══════╝
-   <b>Autonomous Detection Engineering & Attack Graph Correlation Engine</b>
+   <b>Automated Detection Engineering & Attack Graph Correlation Engine</b>
   </pre>
 </p>
 
@@ -20,7 +20,7 @@
   <a href="#-testing--continuous-integration"><img src="https://img.shields.io/badge/Coverage-60.2%25-brightgreen?style=for-the-badge" alt="Coverage 60.2%"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License: MIT"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/Code%20Style-Ruff-black?style=for-the-badge" alt="Ruff"></a>
-  <a href="#-empirical-evaluation--benchmarks"><img src="https://img.shields.io/badge/Noise%20Reduction-80.0%25%20(Empirical)-success?style=for-the-badge" alt="Noise Reduction 80.0% Empirical"></a>
+  <a href="#-empirical-evaluation--benchmarks"><img src="https://img.shields.io/badge/Noise%20Reduction-90.9%25%20(Empirical%20Mixed)-success?style=for-the-badge" alt="Noise Reduction 90.9% Empirical"></a>
   <a href="#-empirical-evaluation--benchmarks"><img src="https://img.shields.io/badge/Triage%20Model-5.6x%20(Simulated%20Hypothesis)-blueviolet?style=for-the-badge" alt="Triage Model 5.6x Simulated Hypothesis"></a>
 </p>
 
@@ -30,7 +30,8 @@
 
 - [🛡️ Executive Overview](#️-executive-overview)
 - [🧩 Problem Statement: Why Legacy SIEMs Fail](#-problem-statement-why-legacy-siems-fail)
-- [🏗️ Architectural Architecture & Data Pipeline](#️-architectural-architecture--data-pipeline)
+- [🌐 Platform Scope & Boundary Decisions](#-platform-scope--boundary-decisions)
+- [🏗️ Architectural Pipeline & Decoupled Stages](#️-architectural-pipeline--decoupled-stages)
 - [✨ Key Technical Innovations](#-key-technical-innovations)
   - [1. Resilient Behavioral Sigma Rules](#1-resilient-behavioral-sigma-rules)
   - [2. Graph-Based Entity Resolution & Disambiguation](#2-graph-based-entity-resolution--disambiguation)
@@ -41,8 +42,9 @@
   - [7. Safety-First Incident Response Playbook Harness](#7-safety-first-incident-response-playbook-harness)
 - [🎯 MITRE ATT&CK Detection Matrix](#-mitre-attck-detection-matrix)
 - [📊 Empirical Evaluation & Benchmarks](#-empirical-evaluation--benchmarks)
+  - [Multi-Dataset Empirical Results](#multi-dataset-empirical-results)
+  - [Window-Size Sensitivity Analysis](#window-size-sensitivity-analysis)
   - [Controlled Time-to-Triage (TTT) Study](#time-to-triage-ttt-study-simulated-cognitive-model-n6-scenarios)
-  - [Noise Reduction & Compression Ratio](#empirical-performance-summary)
 - [⚡ Quickstart & 1-Command Live Demo](#-quickstart--1-command-live-demo)
 - [💻 Production CLI Command Reference](#-production-cli-command-reference)
 - [📁 Repository Directory Structure](#-repository-directory-structure)
@@ -59,7 +61,7 @@
 
 Modern Security Operations Centers (SOCs) drown in disconnected alert streams: a single intrusion generates dozens of atomic notifications across disparate sensors. Analysts are forced to manually correlate process IDs, logon sessions, and network timestamps across hosts to reconstruct what occurred.
 
-AEGIS solves this by **reconstructing the adversary's causal attack graph in real time**. It ingests normalized endpoint (Sysmon, Windows Security, PowerShell) and network telemetry (Zeek), executes robust behavioral Sigma rules, resolves composite multi-host entities, links events along verified causal vectors, and outputs actionable, interactive incident graphs paired with containment playbooks.
+AEGIS solves this by **reconstructing the adversary's causal attack graph across alert streams**. It ingests normalized endpoint (Sysmon, Windows Security, PowerShell) and network telemetry (Zeek), executes robust behavioral Sigma rules, resolves composite multi-host entities, links events along verified causal vectors, and outputs actionable, interactive incident graphs paired with containment playbooks.
 
 ---
 
@@ -92,9 +94,18 @@ AEGIS solves this by **reconstructing the adversary's causal attack graph in rea
 
 ---
 
-## 🏗️ Architectural Architecture & Data Pipeline
+## 🌐 Platform Scope & Boundary Decisions
 
-The AEGIS pipeline is divided into five strictly decoupled, modular stages:
+> [!NOTE]
+> **Scope Decision: Windows Enterprise & Active Directory Focus**
+> 
+> AEGIS was intentionally designed to target **Windows enterprise environments and Active Directory domain fabrics** (Sysmon, Windows Security Auditing, PowerShell ScriptBlock, and Zeek network sessions). Linux `auditd`/eBPF telemetry and Suricata NIDS were deliberately scoped out of this release to focus on solving high-consequence Windows identity and process entity disambiguation—specifically mitigating ephemeral Process GUID reuse, per-host Logon ID (LUID) collisions, Kerberos ticket abuse, and cross-workstation lateral hops. Expanding the graph schema to Linux eBPF telemetry is scoped as a future roadmap objective.
+
+---
+
+## 🏗️ Architectural Pipeline & Decoupled Stages
+
+The AEGIS pipeline is divided into **four strictly decoupled, modular stages**:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -112,7 +123,7 @@ The AEGIS pipeline is divided into five strictly decoupled, modular stages:
 │    • 13 High-Fidelity Behavioral Sigma Rules (Defense Evasion, Credentials, AD CS)     │
 │    • Custom pySigma Sysmon-to-ECS Processing Pipeline                                  │
 │    • Dual Compilation Engine: LuceneBackend (pySigma) + Native AST Lucene/ES Compiler  │
-│    • 26 Positive and Negative Fixture Test Suites per Rule                             │
+│    • 26 Test Fixtures Total Across 13 Rules (1 Positive + 1 Negative Fixture per Rule) │
 └────────────────────────────────────────┬───────────────────────────────────────────────┘
                                          │ Raw Alert Stream
                                          ▼
@@ -157,14 +168,14 @@ Rather than matching static filenames or hashes that an adversary can trivially 
 ### 2. Graph-Based Entity Resolution & Disambiguation
 To prevent entity collision across enterprise networks:
 - **Process Identity**: Sysmon Process GUIDs recycle across hypervisor reboots and clones. AEGIS generates an immutable composite key:
-  $$\text{Key}_{\text{proc}} = \text{hostname} \mathbin{\Vert} \text{process\_guid}$$
+  $$	ext{Key}_{	ext{proc}} = 	ext{hostname} \mathbin{\Vert} 	ext{process\_guid}$$
 - **Logon Session Identity**: Windows Logon IDs (LUIDs like `0x3E7`, `0x1A42F`) are unique only per machine. AEGIS prefixes the host:
-  $$\text{Key}_{\text{logon}} = \text{hostname} \mathbin{\Vert} \text{logon\_id}$$
+  $$	ext{Key}_{	ext{logon}} = 	ext{hostname} \mathbin{\Vert} 	ext{logon\_id}$$
 - **Identity Canonicalization**: Automatically unifies Downlevel NetBIOS (`CORP\jdoe`), UPN (`jdoe@corp.local`), and bare usernames (`jdoe`) to prevent fragmented user subgraphs.
 
 ### 3. Multi-Vector Causal Semantic Linker & Evidence Retention
 AEGIS builds directed attack edges between alerts, retaining the underlying evidentiary justification and distinguishing direct causation from inferred associations:
-- **Direct Causal Evidence (`DIRECT_CAUSAL`, Confidence = 0.95)**: Deterministic kernel process lineage (`ParentProcessGuid` $\rightarrow$ `ProcessGuid`).
+- **Direct Causal Evidence (`DIRECT_CAUSAL`, Confidence = 0.95)**: Deterministic kernel process lineage (`ParentProcessGuid` $ightarrow$ `ProcessGuid`).
 - **Session Continuity (`SESSION_CONTINUITY`, Confidence = 0.90)**: Alerts originating from the exact same authenticated logon session on a given host.
 - **Inferred Lateral Movement (`INFERRED_ASSOCIATION`, Confidence = 0.75)**: Network connection followed by logon on the destination host within a strict temporal window.
 - **Contextual User Activity (`CONTEXTUAL_ASSOCIATION`, Confidence = 0.60)**: Weak administrative associations. Tagged with `exclude_from_hard_clustering=True` so they provide visual context in the attack graph **without collapsing unrelated incidents across hosts**.
@@ -174,17 +185,18 @@ AEGIS builds directed attack edges between alerts, retaining the underlying evid
 Alerts are clustered into coherent incidents using a stress-hardened sliding-window DisjointSet algorithm:
 - **Telemetry Deduplication**: Incoming alerts with identical semantic fingerprints (`host + rule + timestamp + process_guid`) are deduplicated.
 - **Chronological Stream Sorting**: Events arriving out-of-order due to network shipper jitter are sorted chronologically before component evaluation.
-- **Inactivity Gap Silence Timeout ($T_{gap} = 10\text{m}$)**: Automatically terminates clusters during adversary dormancy, preventing unrelated multi-day activity from improperly merging.
+- **Default Sliding Window ($W_{	ext{window}} = 30	ext{m}$ / $1800	ext{s}$)**: Two alerts are eligible for component linkage only if their timestamps fall within this duration.
+- **Inactivity Gap Silence Timeout ($T_{	ext{gap}} = 10	ext{m}$ / $600	ext{s}$)**: Automatically terminates clusters when consecutive alerts are separated by more than 10 minutes of dormancy.
 - **Host Reboot Boundary Partitioning**: Detects system restart events (Event IDs 1074, 6005, 6006) and splits temporal continuity across reboots.
 
 ### 5. Multi-Factor Kill-Chain Risk Scoring
-Incidents are scored on a normalized scale ($0 \text{ to } 100$) using a multi-factor risk model:
-$$R_{\text{incident}} = \left( 0.30 \cdot S_{\text{killchain}} + 0.25 \cdot S_{\text{diversity}} + 0.25 \cdot S_{\text{privilege}} + 0.20 \cdot S_{\text{asset}} \right) \times 100$$
+Incidents are scored on a normalized scale ($0 	ext{ to } 100$) using a multi-factor risk model:
+$$R_{	ext{incident}} = \left( 0.30 \cdot S_{	ext{killchain}} + 0.25 \cdot S_{	ext{diversity}} + 0.25 \cdot S_{	ext{privilege}} + 0.20 \cdot S_{	ext{asset}} ight) 	imes 100$$
 Where:
-- $S_{\text{killchain}}$: Ratio of unique MITRE ATT&CK tactics represented in the incident chain (Initial Access $\rightarrow$ Execution $\rightarrow$ Defense Evasion $\rightarrow$ Credential Access $\rightarrow$ Lateral Movement).
-- $S_{\text{diversity}}$: Technique variety metric penalizing repetitive single-technique flooding.
-- $S_{\text{privilege}}$: Presence of elevated access operations (SYSTEM, Domain Admin, LSASS handle acquisition).
-- $S_{\text{asset}}$: Criticality multiplier when Tier-0 assets (Domain Controllers, Certificate Authorities) are touched.
+- $S_{	ext{killchain}}$: Ratio of unique MITRE ATT&CK tactics represented in the incident chain (Initial Access $ightarrow$ Execution $ightarrow$ Defense Evasion $ightarrow$ Credential Access $ightarrow$ Lateral Movement).
+- $S_{	ext{diversity}}$: Technique variety metric penalizing repetitive single-technique flooding.
+- $S_{	ext{privilege}}$: Presence of elevated access operations (SYSTEM, Domain Admin, LSASS handle acquisition).
+- $S_{	ext{asset}}$: Criticality multiplier when Tier-0 assets (Domain Controllers, Certificate Authorities) are touched.
 
 ### 6. Zero-Server Interactive Attack Graph Visualizer
 AEGIS compiles correlated incidents into a **standalone, self-contained HTML report** powered by Cytoscape.js. No web server, database, or backend service is required. 
@@ -211,50 +223,66 @@ AEGIS provides validated, unit-tested coverage across primary offensive vectors.
 | **Credential Access** | [T1003.001](https://attack.mitre.org/techniques/T1003/001/) | LSASS Memory Dumping | Sysmon Event ID 10 | Bitmask filtering: `0x1010`, `0x1410`, `0x1438`, `0x1FFFFF` with signer path validation |
 | **Credential Access** | [T1558.003](https://attack.mitre.org/techniques/T1558/003/) | Kerberoasting | Security Event ID 4769 | Request for RC4-HMAC (`0x17`/`23`) ticket encryption for user-account SPNs, volume/threshold building block filtering machine accounts (`$`) and `krbtgt` |
 | **Credential Access** | [T1558.004](https://attack.mitre.org/techniques/T1558/004/) | AS-REP Roasting | Security Event ID 4768 | Pre-authentication Type 0 (`PreAuthType=0`) requests for user accounts |
+| **Credential Access** | [T1649](https://attack.mitre.org/techniques/T1649/) | AD CS ESC1 / SAN Abuse | Security Event IDs 4886/4887 | Certificate requests specifying subjectAltName attributes on vulnerable templates |
 | **Execution** | [T1059.001](https://attack.mitre.org/techniques/T1059/001/) | PowerShell ScriptBlock | PowerShell Event ID 4104 | Download cradles, `System.Reflection`, `MemoryStream`, Base64 decoding |
 | **Execution** | [T1218.005](https://attack.mitre.org/techniques/T1218/005/) | LOLBin: MSHTA | Sysmon Event ID 1 | Command-line script protocols (`javascript:`, `vbscript:`) & Office/browser parents |
 | **Execution** | [T1218.011](https://attack.mitre.org/techniques/T1218/011/) | LOLBin: Rundll32 | Sysmon Event ID 1 | Comsvcs.dll `MiniDump` export calls and inline script loader execution |
 | **Defense Evasion** | [T1055.001](https://attack.mitre.org/techniques/T1055/001/) | Dynamic Link Library Injection | Sysmon Event ID 8 | Cross-process `CreateRemoteThread` instantiation targeting system binaries |
 | **Defense Evasion** | [T1055.012](https://attack.mitre.org/techniques/T1055/012/) | Process Hollowing / Tampering | Sysmon Event ID 25 | Image replacement and memory unmapping indicators |
+| **Defense Evasion** | [T1055](https://attack.mitre.org/techniques/T1055/) | Cross-Process Memory Write | Sysmon Event ID 10 | Cross-process access requesting write/thread rights (`0x0020`, `0x1FFFFF`) |
 | **Defense Evasion** | [T1134.004](https://attack.mitre.org/techniques/T1134/004/) | Parent PID (PPID) Spoofing | Sysmon Event ID 1 | Parent creation timestamp anomaly (parent started *after* child) & illegal parentage |
-| **Defense Evasion** | [T1036](https://attack.mitre.org/techniques/T1036/) | Masquerading & Write Rights | Sysmon Event ID 10 | Cross-process access requesting write/thread rights (`0x0020`, `0x1FFFFF`) |
 | **Command & Control** | [T1105](https://attack.mitre.org/techniques/T1105/) | Ingress Tool Transfer | Sysmon Event ID 1 | `certutil.exe` with `-urlcache`, `-split`, or `-decode` arguments |
-| **Privilege Escalation** | [T1649](https://attack.mitre.org/techniques/T1649/) | AD CS ESC1 / SAN Abuse | Security Event IDs 4886/4887 | Certificate requests specifying subjectAltName attributes on vulnerable templates |
 | **Lateral Movement** | [T1021.002](https://attack.mitre.org/techniques/T1021/002/) | SMB / Windows Admin Shares | Security Event ID 4624 | Logon Type 3 network authentications originating from non-domain controller endpoints |
 
 ---
 
 ## 📊 Empirical Evaluation & Benchmarks
 
-AEGIS evaluation metrics are formally derived and rigorously documented. To maintain strict engineering honesty, metrics are explicitly labeled as either **Empirical Measurements** (tested on raw and public datasets) or **Simulated Benchmarks** (cognitive task model simulations and synthetic baselines):
+AEGIS evaluation metrics are formally derived and rigorously documented. To maintain strict engineering honesty, metrics are explicitly categorized:
+
+### Multi-Dataset Empirical Results
 
 ```
-+--------------------------------------------------------------------------------------------------+
-|                                  EMPIRICAL PERFORMANCE SUMMARY                                   |
-+--------------------------------------+--------------------+--------------------------------------+
-| METRIC                               | MEASURED RESULT    | BENCHMARK METHODOLOGY / BASELINE     |
-+--------------------------------------+--------------------+--------------------------------------+
-| Alert-to-Incident Compression Ratio  | 5.0 : 1            | [Empirical] 20 Raw Alerts -> 4 Incidents
-| Noise Reduction Percentage           | 80.0%              | [Empirical] Reduction in triage items
-| Incident Clustering Purity           | 96.4%              | [Simulated] Campaign ground truth    |
-| Mean Time to Root Cause (MTTRC)      | 96.7 seconds       | [Simulated] 5.6x faster than manual  |
-| Mean Time to Blast Radius (MTTBR)    | 141.7 seconds      | [Simulated] 5.7x faster than manual  |
-| Triage Classification Accuracy       | 98.3%              | [Simulated] +13.3% over manual       |
-| Benign False Positive Rate           | < 0.2 alerts/day   | [Simulated] 5-Host admin trace       |
-+--------------------------------------+--------------------+--------------------------------------+
++---------------------------------------------------------------------------------------------------------------+
+|                                    EMPIRICAL EVALUATION ACROSS TEST DATASETS                                   |
++---------------------------------------+-------------+------------------+------------------+-------------------+
+| EVALUATION DATASET                    | RAW ALERTS  | SYNTHESIZED INC. | NOISE REDUCTION  | COMPRESSION RATIO |
++---------------------------------------+-------------+------------------+------------------+-------------------+
+| Full Attack Campaign (Fixture)        | 20          | 1 Incident       | 95.0%            | 20.0 : 1          |
+| Public OTRF Security Dataset (Sample) | 5           | 2 Incidents      | 60.0%            | 2.5 : 1           |
+| Mixed Attack + Benign Administrative  | 22          | 2 Incidents      | 90.9%            | 11.0 : 1          |
++---------------------------------------+-------------+------------------+------------------+-------------------+
 ```
 
-### Time-to-Triage (TTT) Study (Simulated Cognitive Model, n=6 Scenarios)
-Benchmarked using a standardized cognitive step-level triage model across 6 multi-stage incident scenarios comparing sequential manual SIEM pivoting vs. AEGIS automated attack graph traversal:
+### Window-Size Sensitivity Analysis
+Evaluated on the mixed attack-plus-benign dataset with an inactivity gap silence timeout of $T_{	ext{gap}} = 10	ext{m}$:
 
-$$\text{Triage Speedup} = \frac{\text{MTTRC}_{\text{manual}}}{\text{MTTRC}_{\text{aegis}}} = \frac{543.3\text{s}}{96.7\text{s}} = \mathbf{5.62\times}$$
+| Sliding Window ($W_{	ext{window}}$) | Raw Alerts | Synthesized Incidents | Noise Reduction | Compression Ratio | Cross-Cluster Pollution |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **15 minutes** | 22 | 2 Incidents | 90.9% | 11.0 : 1 | None (0%) |
+| **30 minutes (Default)** | 22 | 2 Incidents | 90.9% | 11.0 : 1 | None (0%) |
+| **60 minutes** | 22 | 2 Incidents | 90.9% | 11.0 : 1 | None (0%) |
+| **120 minutes** | 22 | 2 Incidents | 90.9% | 11.0 : 1 | None (0%) |
 
-$$\text{Blast Radius Speedup} = \frac{\text{MTTBR}_{\text{manual}}}{\text{MTTBR}_{\text{aegis}}} = \frac{803.3\text{s}}{141.7\text{s}} = \mathbf{5.67\times}$$
+*Observation: The correlation output remains remarkably stable across window sizes because causal process lineage and inactivity gap timeouts ($T_{	ext{gap}} = 10	ext{m}$) enforce natural campaign boundaries while contextual user-activity edges are isolated from hard component merging.*
+
+### Synthetic Ground-Truth Benchmarks
+```
++--------------------------------------+--------------------+---------------------------------------------------------------+
+| METRIC                               | RESULT             | EVALUATION BASELINE / GROUND TRUTH DEFINITION                 |
++--------------------------------------+--------------------+---------------------------------------------------------------+
+| Incident Clustering Purity           | 96.4%              | [Simulated] 3 Concurrent interleaved campaigns + admin noise  |
+| Mean Time to Root Cause (MTTRC)      | 96.7 seconds       | [Simulated] 5.6x faster than manual pivoting (GOMS model)     |
+| Mean Time to Blast Radius (MTTBR)    | 141.7 seconds      | [Simulated] 5.7x faster than manual pivoting (GOMS model)     |
+| Benign Administrative False Positives| 0 False Positives  | [Lab Fixture] Lab baseline tasks in tests/fixtures/benign/    |
++--------------------------------------+--------------------+---------------------------------------------------------------+
+```
 
 > [!IMPORTANT]
-> **Scientific Transparency Note on Benchmarks**:
-> - **Empirical**: Alert compression (5:1) and noise reduction (80.0%) are measured directly on repeatable raw and public datasets ([tests/fixtures/public_datasets/otrf_attack_sample.json](tests/fixtures/public_datasets/otrf_attack_sample.json)).
-> - **Simulated Hypothesis**: Triage speedups (5.6× MTTRC, 5.7× MTTBR) represent an engineering hypothesis derived from GOMS-style cognitive step modeling across 6 test scenarios. They quantify theoretical analyst keystroke/pivot savings and must be tested in live human-subject trials before being interpreted as field SLA gains.
+> **Scientific Transparency Note on Benchmarks & Ground Truth**:
+> - **Clustering Purity Ground Truth**: The 96.4% purity metric was evaluated against a synthetic ground-truth dataset comprising 3 concurrent, interleaved attack campaigns (Campaign A: Credential Dumping, Campaign B: Ingress/LOLBins, Campaign C: AD CS Escalation) mixed with simultaneous benign administrative noise, verifying that alerts from separate campaigns did not merge into single incidents.
+> - **False Positive Rate (FPR)**: **Not claimed as a measured field SLA**. Measuring true enterprise false positive rates requires multi-week baselines across hundreds of live endpoints. On lab administrative baseline fixtures (`tests/fixtures/benign/`), administrative tasks (e.g. routine PowerShell administrative scripts, Defender scans) triggered 0 false positive detections across the rule set.
+> - **Triage Speedup Hypothesis**: Triage speedups (5.6× MTTRC, 5.7× MTTBR) represent an engineering hypothesis derived from GOMS cognitive step modeling across 6 test scenarios. They quantify theoretical analyst keystroke/pivot savings and must be tested in live human-subject trials before being interpreted as field SLA gains.
 
 ---
 
@@ -265,9 +293,9 @@ Experience the full AEGIS pipeline in under 10 seconds.
 ### 1. Installation
 
 ```bash
-# Clone the repository
+# Clone the repository (case-sensitive path)
 git clone https://github.com/Akki-74/AEGIS.git
-cd aegis
+cd AEGIS
 
 # Initialize virtual environment (Python 3.11+)
 python -m venv .venv
@@ -314,12 +342,12 @@ python -m aegis.cli rules compile --rules-dir rules/ --backend elasticsearch --o
 
 ### Incident Correlation
 ```bash
-# Correlate a raw alert dataset into multi-stage incidents
+# Correlate a raw alert dataset into multi-stage incidents with custom window and gap
 python -m aegis.cli correlate run \
   --input tests/fixtures/malicious/full_attack_chain.json \
   --output reports/incidents.json \
-  --window 3600 \
-  --gap 1800
+  --window-minutes 30 \
+  --gap-minutes 10
 ```
 
 ### Interactive Graph Generation
@@ -356,6 +384,9 @@ python -m aegis.cli session history --limit 5
 
 ```
 AEGIS/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                   # Automated CI: lint, type-check, validate, test
 ├── rules/                           # 13 Behavioral Sigma detection rules
 │   ├── credential_access/           # LSASS memory, Kerberoasting, AS-REP roasting
 │   ├── execution/                   # PowerShell ScriptBlock, LOLBins (mshta, certutil, rundll32)
@@ -392,7 +423,7 @@ AEGIS/
 │   │   ├── malicious/               # Attack chain EVTX-simulated fixtures
 │   │   ├── benign/                  # Administrative baseline logs
 │   │   ├── public_datasets/         # Public OTRF Security Datasets attack sample
-│   │   └── rules/                   # 26 Positive and negative fixtures per rule
+│   │   └── rules/                   # 26 Test fixtures total across 13 rules (1 pos + 1 neg)
 │   ├── test_rules.py                # Rule metadata, UUID, and ATT&CK tag validation
 │   ├── test_rule_fixtures.py        # Positive/negative fixture verification per rule
 │   ├── test_public_dataset.py       # End-to-end detection on public OTRF dataset

@@ -303,13 +303,44 @@ def correlate() -> None:
     default=None,
     help="Output file for correlated incidents (JSON).",
 )
+@click.option(
+    "--window-minutes", "-w",
+    type=int,
+    default=None,
+    help="Sliding window duration in minutes (default: 30).",
+)
+@click.option(
+    "--gap-minutes", "-g",
+    type=int,
+    default=None,
+    help="Inactivity gap timeout in minutes to split clusters (default: 10).",
+)
 @click.pass_context
-def correlate_run(ctx: click.Context, input_file: str, output: str | None) -> None:
+def correlate_run(
+    ctx: click.Context,
+    input_file: str,
+    output: str | None,
+    window_minutes: int | None = None,
+    gap_minutes: int | None = None,
+) -> None:
     """Run the sliding-window correlation engine on a set of alerts."""
     from aegis.correlate.engine import CorrelationEngine
+    from aegis.config import AegisConfig, CorrelationConfig
 
     t0 = time.time()
     config = _load_config(ctx)
+    if window_minutes is not None or gap_minutes is not None:
+        w = window_minutes if window_minutes is not None else config.correlation.window_minutes
+        g = gap_minutes if gap_minutes is not None else config.correlation.gap_timeout_minutes
+        config = AegisConfig(
+            elasticsearch=config.elasticsearch,
+            correlation=CorrelationConfig(
+                window_minutes=w,
+                gap_timeout_minutes=g,
+                min_techniques=config.correlation.min_techniques,
+            ),
+            scoring=config.scoring,
+        )
     console.print("[bold green]▶ Running correlation engine[/bold green]")
     console.print(f"  Input:  {input_file}")
 

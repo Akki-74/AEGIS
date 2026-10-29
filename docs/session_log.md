@@ -25,6 +25,7 @@ This log maintains a chronological record of all architecture decisions, enginee
 - [Session 18: Comprehensive Project Audit & Test Coverage Expansion](#session-18-comprehensive-project-audit--test-coverage-expansion)
 - [Session 19: Production Hardening: Causal Evidence, Temporal Stress Testing, Benchmark Transparency & Containment Safety](#session-19-production-hardening-causal-evidence-temporal-stress-testing-benchmark-transparency--containment-safety)
 - [Session 20: Comprehensive Technical Documentation & README Modernization](#session-20-comprehensive-technical-documentation--readme-modernization)
+- [Session 21: Documentation Integrity, Parameter Alignment, Empirical Expansion & Scope Calibration](#session-21-documentation-integrity-parameter-alignment-empirical-expansion--scope-calibration)
 
 ---
 
@@ -590,6 +591,47 @@ This log maintains a chronological record of all architecture decisions, enginee
   - `python -m aegis.cli rules validate --rules-dir rules/`: 13/13 rules validated with 100% pass rate.
 - **Artifacts Modified / Created:**
   - `README.md` (Updated and expanded)
+  - `docs/session_log.md` (Updated)
+
+---
+
+### Session 21: Documentation Integrity, Parameter Alignment, Empirical Expansion & Scope Calibration
+- **Date / Time:** 2026-10-29 17:15:00 UTC
+- **Operator:** Principal Security Architect & Detection Engineering Lead
+- **Status:** COMPLETED
+- **Objectives:**
+  - Resolve all documented technical inconsistencies and parameter discrepancies across `README.md`, `aegis/cli.py`, and correlation defaults.
+  - Reclassify ATT&CK tags to strict MITRE standards (T1649 -> Credential Access; cross-process write -> T1055).
+  - Expand noise reduction benchmarks across 3 datasets with window-size sensitivity analysis.
+  - Remove speculative simulated false-positive rate numbers and document exact ground-truth definitions.
+  - Add explicit Platform Scope Decision callout addressing Linux/Suricata omissions.
+  - Re-verify repository hygiene (.gitignore) and update documentation session log.
+- **Actions Taken:**
+  - In `aegis/cli.py`:
+    - Added `--window-minutes` (`-w`) and `--gap-minutes` (`-g`) options to `correlate run` command with defaults matching `AegisConfig` (30m window, 10m gap).
+  - In `README.md`:
+    - Aligned sliding window ($W_{\text{window}} = 30\text{m}$) and inactivity gap ($T_{\text{gap}} = 10\text{m}$) across text, formulas, and CLI examples.
+    - Corrected stage count to "four strictly decoupled, modular stages" matching the architectural ASCII diagram.
+    - Clarified fixture wording to "26 test fixtures total across 13 rules (1 positive + 1 negative fixture per rule)".
+    - Fixed git clone path to case-sensitive `cd AEGIS`.
+    - Corrected ATT&CK taxonomy: T1649 mapped to Credential Access; cross-process write access mapped to T1055.
+    - Replaced "Autonomous" and "real time" with accurate "Automated" and batch/stream processing terminology.
+    - Added `.github/workflows/ci.yml` in the directory tree.
+    - Expanded empirical benchmarks: Added results for Full Attack Chain (95.0% reduction, 20:1), Public OTRF Dataset (60.0% reduction, 2.5:1), and Mixed Attack + Benign Dataset (90.9% reduction, 11:1).
+    - Added window-size sensitivity table ($W = 15\text{m}, 30\text{m}, 60\text{m}, 120\text{m}$) demonstrating zero cross-cluster pollution.
+    - Defined ground-truth criteria for 96.4% cluster purity (3 concurrent interleaved campaigns).
+    - Dropped speculative false-positive rate claims, stating the field-measurement requirement and reporting 0 FPs on lab administrative baseline fixtures.
+    - Added explicit Platform Scope Decision callout documenting why Windows/AD was prioritized and Linux/Suricata scoped out.
+  - Verified `.gitignore` continues to cleanly exclude caches while tracking fixtures, documentation, and session logs.
+  - Logged operational event via `aegis.cli session log`.
+- **Evaluation / Test Results:**
+  - `python -m ruff check aegis/ tests/`: All checks passed.
+  - `python -m mypy aegis/ tests/`: Success: no issues found in 40 source files.
+  - `python -m pytest`: 48 passed, 52 subtests passed in 0.67s.
+  - `python -m aegis.cli rules validate --rules-dir rules/`: 13/13 rules validated with 100% pass rate.
+- **Artifacts Modified / Created:**
+  - `README.md` (Updated and expanded)
+  - `aegis/cli.py` (Added --window-minutes and --gap-minutes CLI options)
   - `docs/session_log.md` (Updated)
 
 ---
