@@ -42,6 +42,7 @@ date: 2026-10-29
 modified: 2026-10-29
 tags:
     - attack.execution
+    - attack.command_and_control
     - attack.t1105
     - attack.defense_evasion
     - attack.t1140

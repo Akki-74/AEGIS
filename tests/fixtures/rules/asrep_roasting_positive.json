@@ -1,0 +1,7 @@
+{
+  "EventID": 4768,
+  "PreAuthType": "0",
+  "TicketEncryptionType": "0x17",
+  "Status": "0x0",
+  "TargetUserName": "svc_backup"
+}

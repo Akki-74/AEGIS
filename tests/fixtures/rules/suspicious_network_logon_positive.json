@@ -1,0 +1,7 @@
+{
+  "EventID": 4624,
+  "LogonType": 3,
+  "WorkstationName": "DC01-PRIMARY",
+  "TargetUserName": "adm_jdoe",
+  "IpAddress": "192.168.1.105"
+}

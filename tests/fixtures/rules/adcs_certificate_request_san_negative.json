@@ -1,0 +1,5 @@
+{
+  "EventID": 4887,
+  "Attributes": "CertificateTemplate:DomainController",
+  "Requester": "DC01$"
+}

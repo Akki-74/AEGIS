@@ -1,0 +1,5 @@
+{
+  "EventID": 1,
+  "Image": "C:\\Windows\\System32\\rundll32.exe",
+  "CommandLine": "rundll32.exe C:\\Windows\\System32\\comsvcs.dll,MiniDump 624 dump.bin full"
+}

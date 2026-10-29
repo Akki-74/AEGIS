@@ -1,0 +1,5 @@
+{
+  "EventID": 1,
+  "ParentImage": "C:\\Windows\\System32\\wininit.exe",
+  "Image": "C:\\Windows\\System32\\lsass.exe"
+}

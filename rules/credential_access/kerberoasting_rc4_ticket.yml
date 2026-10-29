@@ -55,11 +55,13 @@ logsource:
     product: windows
     service: security
 detection:
-    # Primary selection: TGS request with RC4 encryption
+    # Primary selection: TGS request with RC4 encryption (etype 0x17 / 23)
     selection:
         EventID: 4769
-        TicketEncryptionType: '0x17'   # RC4-HMAC-MD5 (etype 23)
-        TicketOptions: '0x40810000'     # Forwardable, Renewable, Canonicalize
+        TicketEncryptionType:
+            - '0x17'
+            - '23'
+        Status: '0x0'                  # Success
 
     # Exclude machine accounts — their SPNs routinely generate RC4 tickets
     # Machine accounts always end with '$'

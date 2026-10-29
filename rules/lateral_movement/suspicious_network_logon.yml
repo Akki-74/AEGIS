@@ -48,6 +48,7 @@ modified: 2026-10-29
 tags:
     - attack.lateral_movement
     - attack.t1021
+    - attack.t1021.002
 logsource:
     product: windows
     service: security

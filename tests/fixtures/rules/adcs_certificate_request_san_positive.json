@@ -1,0 +1,5 @@
+{
+  "EventID": 4887,
+  "Attributes": "CertificateTemplate:WebServer\nsan:upn=administrator@corp.local",
+  "Requester": "CORP\\attacker"
+}

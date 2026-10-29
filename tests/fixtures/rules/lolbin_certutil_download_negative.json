@@ -1,0 +1,5 @@
+{
+  "EventID": 1,
+  "Image": "C:\\Windows\\System32\\certutil.exe",
+  "CommandLine": "certutil.exe -dump mycert.cer"
+}

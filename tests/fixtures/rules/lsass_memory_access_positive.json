@@ -1,0 +1,6 @@
+{
+  "EventID": 10,
+  "TargetImage": "C:\\Windows\\System32\\lsass.exe",
+  "SourceImage": "C:\\Temp\\mimikatz.exe",
+  "GrantedAccess": "0x1010"
+}

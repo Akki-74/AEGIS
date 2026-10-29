@@ -153,10 +153,10 @@ class TemporalClusterer:
         for _u, _v, data in linked_graph.edges(data=True):
             aid_set: set[str] = data.get("alert_ids", set())
             aid_list = sorted(aid_set)
-            for i, a1 in enumerate(aid_list):
-                for a2 in aid_list[i + 1 :]:
-                    if a1 in alert_by_id and a2 in alert_by_id:
-                        alert_pairs.add((a1, a2))
+            for i, id1 in enumerate(aid_list):
+                for id2 in aid_list[i + 1 :]:
+                    if id1 in alert_by_id and id2 in alert_by_id:
+                        alert_pairs.add((id1, id2))
 
         # Step 2 — Union-Find with temporal window constraint.
         ds = DisjointSet()
@@ -166,9 +166,9 @@ class TemporalClusterer:
         window_s = self.window_minutes * 60
 
         for a1_id, a2_id in alert_pairs:
-            a1 = alert_by_id[a1_id]
-            a2 = alert_by_id[a2_id]
-            td = abs((a1.timestamp - a2.timestamp).total_seconds())
+            alert_1 = alert_by_id[a1_id]
+            alert_2 = alert_by_id[a2_id]
+            td = abs((alert_1.timestamp - alert_2.timestamp).total_seconds())
             if td <= window_s:
                 ds.union(a1_id, a2_id)
 

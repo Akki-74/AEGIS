@@ -1,0 +1,5 @@
+{
+  "EventID": 8,
+  "TargetImage": "C:\\Windows\\System32\\lsass.exe",
+  "SourceImage": "C:\\Windows\\System32\\csrss.exe"
+}

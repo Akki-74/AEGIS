@@ -1,0 +1,5 @@
+{
+  "EventID": 1,
+  "Image": "C:\\Windows\\System32\\mshta.exe",
+  "CommandLine": "mshta.exe C:\\Windows\\Help\\help.hta"
+}

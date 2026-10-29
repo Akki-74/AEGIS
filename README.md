@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/your-org/aegis/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-Passing-brightgreen?style=for-the-badge&logo=githubactions&logoColor=white" alt="CI Status"></a>
+  <a href="https://github.com/Akki-74/AEGIS/actions/workflows/ci.yml"><img src="https://github.com/Akki-74/AEGIS/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.11%2B-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
   <a href="https://mitre-attack.github.io/attack-navigator/"><img src="https://img.shields.io/badge/ATT%26CK%20Navigator-v4.5-orange?style=for-the-badge&logo=mitre&logoColor=white" alt="MITRE ATT&CK Navigator"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License: MIT"></a>
@@ -198,7 +198,7 @@ AEGIS provides validated, unit-tested coverage across primary offensive vectors.
 | Tactic | Technique ID | Technique Name | Primary Telemetry | Resilient Detection Logic |
 | :--- | :--- | :--- | :--- | :--- |
 | **Credential Access** | [T1003.001](https://attack.mitre.org/techniques/T1003/001/) | LSASS Memory Dumping | Sysmon Event ID 10 | Bitmask filtering: `0x1010`, `0x1410`, `0x1438`, `0x1FFFFF` with signer path validation |
-| **Credential Access** | [T1558.003](https://attack.mitre.org/techniques/T1558/003/) | Kerberoasting | Security Event ID 4769 | Request for RC4-HMAC (`0x17`) tickets filtering out machine accounts (`$`) |
+| **Credential Access** | [T1558.003](https://attack.mitre.org/techniques/T1558/003/) | Kerberoasting | Security Event ID 4769 | Request for RC4-HMAC (`0x17`/`23`) ticket encryption for user-account SPNs, volume/threshold building block filtering machine accounts (`$`) and `krbtgt` |
 | **Credential Access** | [T1558.004](https://attack.mitre.org/techniques/T1558/004/) | AS-REP Roasting | Security Event ID 4768 | Pre-authentication Type 0 (`PreAuthType=0`) requests for user accounts |
 | **Execution** | [T1059.001](https://attack.mitre.org/techniques/T1059/001/) | PowerShell ScriptBlock | PowerShell Event ID 4104 | Download cradles, `System.Reflection`, `MemoryStream`, Base64 decoding |
 | **Execution** | [T1218.005](https://attack.mitre.org/techniques/T1218/005/) | LOLBin: MSHTA | Sysmon Event ID 1 | Command-line script protocols (`javascript:`, `vbscript:`) & Office/browser parents |
@@ -215,7 +215,7 @@ AEGIS provides validated, unit-tested coverage across primary offensive vectors.
 
 ## 📊 Empirical Evaluation & Benchmarks
 
-AEGIS evaluation metrics are defensibly measured using ground-truth labeled attack datasets (`full_attack_chain.json`) and real-world benign baseline telemetry:
+AEGIS evaluation metrics are formally derived and rigorously documented. To maintain strict engineering honesty, metrics are explicitly labeled as either **Empirical Measurements** (tested on raw and public datasets) or **Simulated Benchmarks** (cognitive task model simulations and synthetic baselines):
 
 ```
 +--------------------------------------------------------------------------------------------------+
@@ -223,22 +223,24 @@ AEGIS evaluation metrics are defensibly measured using ground-truth labeled atta
 +--------------------------------------+--------------------+--------------------------------------+
 | METRIC                               | MEASURED RESULT    | BENCHMARK METHODOLOGY / BASELINE     |
 +--------------------------------------+--------------------+--------------------------------------+
-| Alert-to-Incident Compression Ratio  | 5.0 : 1            | 20 Raw SIEM Alerts -> 4 Incidents    |
-| Noise Reduction Percentage           | 80.0%              | Empirical reduction in triage items  |
-| Incident Clustering Purity           | 96.4%              | Correct attribution to attack chains |
-| Mean Time to Root Cause (MTTRC)      | 96.7 seconds       | 5.6x faster than manual pivoting     |
-| Mean Time to Blast Radius (MTTBR)    | 141.7 seconds      | 5.7x faster than manual log queries  |
-| Triage Classification Accuracy       | 98.3%              | +13.3% over manual baseline (85.0%)  |
-| Benign False Positive Rate           | < 0.2 alerts/day   | Measured against 5-host admin trace  |
+| Alert-to-Incident Compression Ratio  | 5.0 : 1            | [Empirical] 20 Raw Alerts -> 4 Incidents
+| Noise Reduction Percentage           | 80.0%              | [Empirical] Reduction in triage items
+| Incident Clustering Purity           | 96.4%              | [Simulated] Campaign ground truth    |
+| Mean Time to Root Cause (MTTRC)      | 96.7 seconds       | [Simulated] 5.6x faster than manual  |
+| Mean Time to Blast Radius (MTTBR)    | 141.7 seconds      | [Simulated] 5.7x faster than manual  |
+| Triage Classification Accuracy       | 98.3%              | [Simulated] +13.3% over manual       |
+| Benign False Positive Rate           | < 0.2 alerts/day   | [Simulated] 5-Host admin trace       |
 +--------------------------------------+--------------------+--------------------------------------+
 ```
 
-### Controlled Time-to-Triage (TTT) Study
-In a controlled study across 6 multi-stage incident scenarios comparing manual SIEM querying vs. AEGIS automated synthesis:
+### Time-to-Triage (TTT) Study (Simulated Cognitive Model, n=6 Scenarios)
+Benchmarked using a standardized cognitive step-level triage model across 6 multi-stage incident scenarios comparing sequential manual SIEM pivoting vs. AEGIS automated attack graph traversal:
 
 $$\text{Triage Speedup} = \frac{\text{MTTRC}_{\text{manual}}}{\text{MTTRC}_{\text{aegis}}} = \frac{543.3\text{s}}{96.7\text{s}} = \mathbf{5.62\times}$$
 
 $$\text{Blast Radius Speedup} = \frac{\text{MTTBR}_{\text{manual}}}{\text{MTTBR}_{\text{aegis}}} = \frac{803.3\text{s}}{141.7\text{s}} = \mathbf{5.67\times}$$
+
+*Transparency Note: TTT results reflect automated cognitive step modeling across synthetic scenarios, not human-subject trials.*
 
 ---
 
@@ -250,7 +252,7 @@ Experience the full AEGIS pipeline in under 10 seconds.
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/aegis.git
+git clone https://github.com/Akki-74/AEGIS.git
 cd aegis
 
 # Initialize virtual environment (Python 3.11+)
@@ -451,6 +453,6 @@ If you use AEGIS in detection engineering research or educational curriculum, pl
   author = {AEGIS Engineering Team},
   title = {AEGIS: Automated Event Graph & Incident Synthesis for Detection Engineering},
   year = {2026},
-  url = {https://github.com/your-org/aegis}
+  url = {https://github.com/Akki-74/AEGIS}
 }
 ```

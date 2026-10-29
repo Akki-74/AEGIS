@@ -1,110 +1,47 @@
 # =============================================================================
-# AEGIS .gitignore - Detection Engineering & Automated Incident Correlation
+# AEGIS .gitignore — Relevant Project Artifacts Only
 # =============================================================================
 
-# ---------------------------------------------------------------------------
-# Python Bytecode & Packaging
-# ---------------------------------------------------------------------------
+# Python Bytecode & Cache
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-build/
-dist/
-*.egg-info/
-*.egg
-.eggs/
-wheels/
-MANIFEST
-*.spec
 
-# ---------------------------------------------------------------------------
 # Virtual Environments
-# ---------------------------------------------------------------------------
 .venv/
 venv/
-ENV/
 env/
-.env.local
 
-# ---------------------------------------------------------------------------
-# Testing, Coverage & Profiling
-# ---------------------------------------------------------------------------
+# Testing, Coverage & Linters (Pytest, Coverage, Ruff, Mypy)
 .pytest_cache/
 .coverage
 .coverage.*
 htmlcov/
 coverage.xml
-*.cover
-.hypothesis/
-.nox/
-.tox/
-
-# ---------------------------------------------------------------------------
-# Static Analysis & Linters (Mypy, Ruff, Pyright)
-# ---------------------------------------------------------------------------
 .mypy_cache/
-.dmypy.json
-dmypy.json
 .ruff_cache/
-.pyre/
-.pytype/
 
-# ---------------------------------------------------------------------------
-# IDEs & Text Editors
-# ---------------------------------------------------------------------------
+# Editor & OS Artifacts
 .vscode/
-!.vscode/settings.json.example
 .idea/
-*.swp
-*.swo
-*~
-*.sublime-project
-*.sublime-workspace
-.project
-.classpath
-.settings/
-
-# ---------------------------------------------------------------------------
-# Operating System Artifacts
-# ---------------------------------------------------------------------------
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 Desktop.ini
 
-# ---------------------------------------------------------------------------
-# Environment & Secret Configurations
-# ---------------------------------------------------------------------------
+# Environment Configuration & Secrets
 .env
 .env.*
 !.env.example
 config.yaml
 !config.yaml.example
 
-# ---------------------------------------------------------------------------
-# Jupyter Notebooks
-# ---------------------------------------------------------------------------
-.ipynb_checkpoints/
-
-# ---------------------------------------------------------------------------
-# Raw Binary Telemetry & Packet Captures (Avoid committing large dumps)
-# ---------------------------------------------------------------------------
+# Raw Binary Captures (Keep large packet dumps out, preserve test fixtures)
 *.pcap
 *.pcapng
-*.cap
 *.evtx
-*.etl
-# Explicitly keep test fixtures intact if stored in repository
 !tests/fixtures/**
 
-# ---------------------------------------------------------------------------
 # Generated Incident Reports & Graph Visualizations
-# ---------------------------------------------------------------------------
 reports/*
 !reports/.gitkeep
 attack_graph.html
@@ -113,21 +50,15 @@ attack_graph.json
 incidents.json
 *.ndjson
 
-# ---------------------------------------------------------------------------
-# Runtime Logs & Operational Session Traces
-# ---------------------------------------------------------------------------
+# Runtime Logs (Keep directory tracked, ignore transient logs)
 logs/*
 !logs/.gitkeep
 *.log
 *.jsonl
-# Preserve documentation session log
 !docs/session_log.md
 
-# ---------------------------------------------------------------------------
-# Temporary Files & Scratch Dirs
-# ---------------------------------------------------------------------------
+# Scratch & Temporary Directories
 tmp/
 temp/
 scratch/
 *.tmp
-*.bak

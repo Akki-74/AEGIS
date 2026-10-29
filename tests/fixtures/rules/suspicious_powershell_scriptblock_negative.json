@@ -1,0 +1,4 @@
+{
+  "EventID": 4104,
+  "ScriptBlockText": "Get-Process | Where-Object { $_.CPU -gt 100 } | Format-Table"
+}

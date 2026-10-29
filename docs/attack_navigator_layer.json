@@ -137,6 +137,13 @@
       "color": "#38BDF8",
       "comment": "Covered by 1 AEGIS Sigma rule(s)",
       "enabled": true
+    },
+    {
+      "techniqueID": "T1021.002",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
     }
   ]
 }
