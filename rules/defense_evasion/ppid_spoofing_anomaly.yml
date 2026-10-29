@@ -1,0 +1,135 @@
+# =============================================================================
+# AEGIS Detection Rule: PPID Spoofing - Anomalous Parent-Child Relationships
+# =============================================================================
+# Parent PID (PPID) Spoofing is a defense evasion technique where adversaries
+# use the STARTUPINFOEX structure with PROC_THREAD_ATTRIBUTE_PARENT_PROCESS
+# to create a process with a falsified parent. This makes malicious processes
+# appear to be spawned by legitimate system processes, evading parent-child
+# relationship-based detection.
+#
+# Resilience Note:
+#   Sysmon records the "claimed" parent process (the one set via
+#   PROC_THREAD_ATTRIBUTE_PARENT_PROCESS), NOT the actual creator. This
+#   means PPID spoofing is partially visible because the resulting
+#   parent-child relationship is impossible or highly anomalous. However,
+#   sophisticated spoofing that uses plausible parents (e.g., spoofing
+#   explorer.exe as parent for cmd.exe) may not trigger this rule.
+#   ETW-based monitoring (Microsoft-Windows-Kernel-Process) can capture
+#   the real creator PID for correlation.
+#
+# Detection Logic:
+#   This rule identifies impossible parent-child process relationships that
+#   cannot occur under normal Windows operation. These impossible pairs are
+#   strong indicators of PPID spoofing or process hollowing.
+#
+# Data Requirements:
+#   - Sysmon Event ID 1 (Process Creation) with ParentImage logging
+# =============================================================================
+
+title: PPID Spoofing - Anomalous Parent-Child Process Relationship
+id: e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b
+status: stable
+description: |
+    Detects anomalous parent-child process relationships that indicate PPID
+    spoofing (T1134.004). Adversaries abuse CreateProcess with
+    PROC_THREAD_ATTRIBUTE_PARENT_PROCESS to create processes with falsified
+    parent PIDs, making malicious processes appear to be children of
+    legitimate system processes.
+
+    Resilience: Sysmon records the claimed parent process, not the actual
+    creator. This rule detects impossible parent-child pairs that cannot
+    occur normally, but sophisticated spoofing using plausible parents may
+    evade detection. Correlate with ETW Microsoft-Windows-Kernel-Process
+    provider for the real creator PID.
+references:
+    - https://attack.mitre.org/techniques/T1134/004/
+    - https://blog.didierstevens.com/2009/11/22/quickpost-selectmyparent-or-playing-with-the-parent-process-id/
+    - https://www.ired.team/offensive-security/defense-evasion/parent-process-id-ppid-spoofing
+    - https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-updateprocthreadattribute
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.defense_evasion
+    - attack.t1134.004
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    # ---- Impossible Pair 1: svchost.exe spawning interactive shells ----
+    # svchost.exe hosts services and does NOT spawn cmd.exe or powershell.exe
+    # directly. Services that need shells use service-specific mechanisms.
+    # Exception: WMI Provider Host (WmiPrvSE.exe), Task Scheduler
+    selection_svchost_shell:
+        EventID: 1
+        ParentImage|endswith: '\svchost.exe'
+        Image|endswith:
+            - '\cmd.exe'
+            - '\powershell.exe'
+            - '\pwsh.exe'
+
+    # Exclude known legitimate svchost→shell patterns
+    filter_svchost_wmi:
+        ParentCommandLine|contains:
+            - 'WmiPrvSE'            # WMI provider spawning shells
+            - 'Schedule'            # Task Scheduler service
+            - '-k netsvcs'          # Network services group (rare but possible)
+            - 'DcomLaunch'          # DCOM server process launcher
+
+    # ---- Impossible Pair 2: explorer.exe spawning system processes ----
+    # explorer.exe (user shell) should NOT spawn core system processes
+    selection_explorer_system:
+        EventID: 1
+        ParentImage|endswith: '\explorer.exe'
+        Image|endswith:
+            - '\lsass.exe'          # LSASS is only spawned by wininit.exe
+            - '\csrss.exe'          # CSRSS is only spawned by smss.exe
+            - '\smss.exe'           # SMSS is only spawned by ntoskrnl
+            - '\wininit.exe'        # Wininit is only spawned by smss.exe
+            - '\services.exe'       # SCM is only spawned by wininit.exe
+            - '\winlogon.exe'       # Winlogon is only spawned by smss.exe
+
+    # ---- Impossible Pair 3: services.exe spawning non-service binaries ----
+    # services.exe (Service Control Manager) only spawns registered Windows
+    # service executables. Interactive tools are NOT spawned by services.exe.
+    selection_services_non_service:
+        EventID: 1
+        ParentImage|endswith: '\services.exe'
+        Image|endswith:
+            - '\cmd.exe'
+            - '\powershell.exe'
+            - '\pwsh.exe'
+            - '\mshta.exe'
+            - '\rundll32.exe'
+            - '\regsvr32.exe'
+            - '\cscript.exe'
+            - '\wscript.exe'
+            - '\notepad.exe'
+
+    # ---- Impossible Pair 4: Non-standard parents for critical system processes ----
+    # lsass.exe should ONLY have wininit.exe as parent
+    selection_lsass_wrong_parent:
+        EventID: 1
+        Image|endswith: '\lsass.exe'
+
+    filter_lsass_legitimate:
+        ParentImage|endswith:
+            - '\wininit.exe'
+            - '\smss.exe'
+
+    condition: >
+        (selection_svchost_shell and not filter_svchost_wmi)
+        or selection_explorer_system
+        or selection_services_non_service
+        or (selection_lsass_wrong_parent and not filter_lsass_legitimate)
+falsepositives:
+    - Scheduled tasks that are configured to run cmd.exe/powershell.exe via the Task Scheduler service (svchost.exe -k netsvcs) — already filtered
+    - WMI-triggered process execution (WmiPrvSE.exe hosted in svchost) — already filtered
+    - Some enterprise management agents that register as services and spawn shells for maintenance
+    - Windows Update servicing operations that may create unusual parent-child chains
+level: high
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/defense_evasion/ppid_spoofing_true_positive.json
+    - tests/fixtures/defense_evasion/ppid_spoofing_false_positive.json

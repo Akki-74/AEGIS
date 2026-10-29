@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AEGIS Incident Report - 452e6998-4b62-42c7-a603-ba5484469659</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+  <style>
+    :root {
+      --bg-dark: #121824;
+      --bg-card: #1B2433;
+      --border-color: #2D3A4F;
+      --text-main: #E2E8F0;
+      --text-muted: #94A3B8;
+      --accent-blue: #38BDF8;
+      --severity-critical: #EF4444;
+      --severity-high: #F97316;
+      --severity-medium: #F59E0B;
+      --severity-low: #3B82F6;
+      --severity-info: #64748B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #F8FAFC;
+    }
+
+    .brand .badge {
+      background: #0284C7;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .incident-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .pill {
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .pill-critical { background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid #EF4444; }
+    .pill-high { background: rgba(249, 115, 22, 0.2); color: #FDBA74; border: 1px solid #F97316; }
+    .pill-medium { background: rgba(245, 158, 11, 0.2); color: #FCD34D; border: 1px solid #F59E0B; }
+    .pill-low { background: rgba(59, 130, 246, 0.2); color: #93C5FD; border: 1px solid #3B82F6; }
+    .pill-info { background: rgba(100, 116, 139, 0.2); color: #CBD5E1; border: 1px solid #64748B; }
+
+    .main-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 65px);
+      overflow: hidden;
+    }
+
+    .graph-pane {
+      flex: 1;
+      position: relative;
+      background: radial-gradient(circle at 50% 50%, #172131 0%, #0F172A 100%);
+    }
+
+    #cy {
+      width: 100%;
+      height: 100%;
+    }
+
+    .graph-legend {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(27, 36, 51, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.75rem;
+      display: flex;
+      gap: 16px;
+      z-index: 10;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .sidebar {
+      width: 480px;
+      background: var(--bg-card);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .section {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .metric-card {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #F8FAFC;
+    }
+
+    .technique-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tech-tag {
+      background: #0F172A;
+      border: 1px solid var(--border-color);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-family: monospace;
+      color: var(--accent-blue);
+    }
+
+    .playbook-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .playbook-item {
+      background: var(--bg-dark);
+      border: 1px solid #334155;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .playbook-item::before {
+      content: "▶";
+      color: var(--accent-blue);
+      font-size: 0.75rem;
+    }
+
+    .timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .timeline-event {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+      border-left: 3px solid var(--accent-blue);
+    }
+
+    .timeline-event-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .timeline-event-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #F1F5F9;
+      margin-bottom: 4px;
+    }
+
+    .timeline-event-detail {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>AEGIS ATTACK GRAPH</h1>
+      <span class="badge">Correlation Engine</span>
+    </div>
+    <div class="incident-meta">
+      <span class="pill pill-medium">medium</span>
+      <span style="font-size: 0.85rem; color: var(--text-muted);">Score: <strong>0.47</strong></span>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="graph-pane">
+      <div id="cy"></div>
+      <div class="graph-legend">
+        <div class="legend-item"><div class="legend-dot" style="background: #4A90D9;"></div> Host</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #E67E22;"></div> User</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #27AE60;"></div> Process</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #8E44AD;"></div> IP / Network</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #F39C12;"></div> Session</div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="section">
+        <div class="section-title">Incident Overview</div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Alert Count</div>
+            <div class="metric-value">6</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Unique Techniques</div>
+            <div class="metric-value">2</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Time Window</div>
+            <div class="metric-value" style="font-size: 0.85rem;">2026-10-28T09:05:10</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Duration</div>
+            <div class="metric-value">560s</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">MITRE ATT&CK Techniques</div>
+        <div class="technique-tags">
+          
+          <div class="tech-tag">T1021.002</div>
+          
+          <div class="tech-tag">T1570</div>
+          
+        </div>
+      </div>
+
+      
+      <div class="section">
+        <div class="section-title">Recommended Playbooks</div>
+        <ul class="playbook-list">
+          
+          <li class="playbook-item">playbooks/lateral_movement.yml</li>
+          
+        </ul>
+      </div>
+      
+
+      <div class="section" style="flex: 1; border-bottom: none;">
+        <div class="section-title">Chronological Event Timeline</div>
+        <div class="timeline-container">
+          
+          <div class="timeline-event" style="border-left-color: #F97316;">
+            <div class="timeline-event-header">
+              <span>2026-10-28T09:05:10+00:00</span>
+              <span style="text-transform: uppercase; font-weight: 600;">high</span>
+            </div>
+            <div class="timeline-event-title">technique_id=T1021.002,technique_name=SMB/Windows Admin Shares</div>
+            <div class="timeline-event-detail">
+              <strong>Techniques:</strong> T1021.002<br>
+              <strong>Entities:</strong> hostname:SERVER01.corp.local, username:NT AUTHORITY\SYSTEM, process_guid:{bbbb0001-0001-6720-0200-000000010000}
+              
+            </div>
+          </div>
+          
+          <div class="timeline-event" style="border-left-color: #F59E0B;">
+            <div class="timeline-event-header">
+              <span>2026-10-28T09:05:15+00:00</span>
+              <span style="text-transform: uppercase; font-weight: 600;">medium</span>
+            </div>
+            <div class="timeline-event-title">technique_id=T1570,technique_name=Lateral Tool Transfer</div>
+            <div class="timeline-event-detail">
+              <strong>Techniques:</strong> T1570<br>
+              <strong>Entities:</strong> hostname:SERVER01.corp.local, username:NT AUTHORITY\SYSTEM, process_guid:{bbbb0001-0002-6720-0200-000000020000}
+              
+            </div>
+          </div>
+          
+          <div class="timeline-event" style="border-left-color: #F59E0B;">
+            <div class="timeline-event-header">
+              <span>2026-10-28T09:05:20+00:00</span>
+              <span style="text-transform: uppercase; font-weight: 600;">medium</span>
+            </div>
+            <div class="timeline-event-title">Security Alert</div>
+            <div class="timeline-event-detail">
+              
+              <strong>Entities:</strong> hostname:SERVER01.corp.local, username:NT AUTHORITY\SYSTEM, process_guid:{bbbb0001-0002-6720-0200-000000020000}, source_ip:10.0.1.20, dest_ip:203.0.113.100
+              
+            </div>
+          </div>
+          
+          <div class="timeline-event" style="border-left-color: #F59E0B;">
+            <div class="timeline-event-header">
+              <span>2026-10-28T09:10:00+00:00</span>
+              <span style="text-transform: uppercase; font-weight: 600;">medium</span>
+            </div>
+            <div class="timeline-event-title">Security Alert</div>
+            <div class="timeline-event-detail">
+              
+              <strong>Entities:</strong> hostname:SERVER01.corp.local, username:NT AUTHORITY\SYSTEM, process_guid:{bbbb0001-0002-6720-0200-000000020000}, source_ip:10.0.1.20, dest_ip:10.0.1.1
+              
+            </div>
+          </div>
+          
+          <div class="timeline-event" style="border-left-color: #F97316;">
+            <div class="timeline-event-header">
+              <span>2026-10-28T09:10:10+00:00</span>
+              <span style="text-transform: uppercase; font-weight: 600;">high</span>
+            </div>
+            <div class="timeline-event-title">technique_id=T1021.002,technique_name=SMB/Windows Admin Shares</div>
+            <div class="timeline-event-detail">
+              <strong>Techniques:</strong> T1021.002<br>
+              <strong>Entities:</strong> hostname:DC01.corp.local, username:NT AUTHORITY\SYSTEM, process_guid:{cccc0001-0001-6720-0300-000000010000}
+              
+            </div>
+          </div>
+          
+          <div class="timeline-event" style="border-left-color: #F59E0B;">
+            <div class="timeline-event-header">
+              <span>2026-10-28T09:14:30+00:00</span>
+              <span style="text-transform: uppercase; font-weight: 600;">medium</span>
+            </div>
+            <div class="timeline-event-title">Security Alert</div>
+            <div class="timeline-event-detail">
+              
+              <strong>Entities:</strong> hostname:DC01.corp.local, username:NT AUTHORITY\SYSTEM, process_guid:{cccc0001-0001-6720-0300-000000010000}, source_ip:10.0.1.1, dest_ip:203.0.113.100
+              
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const graphData = {"nodes": [{"data": {"id": "server01.corp.local|{bbbb0001-0001-6720-0200-000000010000}", "label": "server01.corp.local|{bbbb0001-0001-6720-0200-000000010000}", "type": "process", "colour": "#27AE60", "first_seen": null, "last_seen": null}}, {"data": {"id": "server01.corp.local|{bbbb0001-0000-6720-0200-000000000010}", "label": "server01.corp.local|{bbbb0001-0000-6720-0200-000000000010}", "type": "process", "colour": "#27AE60", "first_seen": null, "last_seen": null}}, {"data": {"id": "203.0.113.100", "label": "203.0.113.100", "type": "ip", "colour": "#8E44AD", "first_seen": null, "last_seen": null}}, {"data": {"id": "dc01.corp.local", "label": "dc01.corp.local", "type": "host", "colour": "#4A90D9", "first_seen": null, "last_seen": null}}, {"data": {"id": "server01.corp.local|{bbbb0001-0002-6720-0200-000000020000}", "label": "server01.corp.local|{bbbb0001-0002-6720-0200-000000020000}", "type": "process", "colour": "#27AE60", "first_seen": null, "last_seen": null}}, {"data": {"id": "dc01.corp.local|0x3e7", "label": "dc01.corp.local|0x3e7", "type": "logon_session", "colour": "#F39C12", "first_seen": null, "last_seen": null}}, {"data": {"id": "nt authority\\system", "label": "nt authority\\system", "type": "user", "colour": "#E67E22", "first_seen": null, "last_seen": null}}, {"data": {"id": "dc01.corp.local|{cccc0001-0000-6720-0300-000000000010}", "label": "dc01.corp.local|{cccc0001-0000-6720-0300-000000000010}", "type": "process", "colour": "#27AE60", "first_seen": null, "last_seen": null}}, {"data": {"id": "10.0.1.1", "label": "10.0.1.1", "type": "ip", "colour": "#8E44AD", "first_seen": null, "last_seen": null}}, {"data": {"id": "server01.corp.local|0x3e7", "label": "server01.corp.local|0x3e7", "type": "logon_session", "colour": "#F39C12", "first_seen": null, "last_seen": null}}, {"data": {"id": "server01.corp.local", "label": "server01.corp.local", "type": "host", "colour": "#4A90D9", "first_seen": null, "last_seen": null}}, {"data": {"id": "10.0.1.20", "label": "10.0.1.20", "type": "ip", "colour": "#8E44AD", "first_seen": null, "last_seen": null}}, {"data": {"id": "dc01.corp.local|{cccc0001-0001-6720-0300-000000010000}", "label": "dc01.corp.local|{cccc0001-0001-6720-0300-000000010000}", "type": "process", "colour": "#27AE60", "first_seen": null, "last_seen": null}}, {"data": {"id": "SERVER01.corp.local", "label": "SERVER01.corp.local", "type": "host", "colour": "#4A90D9"}}, {"data": {"id": "NT AUTHORITY\\SYSTEM", "label": "NT AUTHORITY\\SYSTEM", "type": "user", "colour": "#E67E22"}}, {"data": {"id": "DC01.corp.local", "label": "DC01.corp.local", "type": "host", "colour": "#4A90D9"}}], "edges": [{"data": {"id": "e0-6011f761", "source": "NT AUTHORITY\\SYSTEM", "target": "SERVER01.corp.local", "label": "T1021.002", "link_type": "", "timestamp": "2026-10-28T09:05:10+00:00", "severity": "high", "colour": "#E67E22"}}, {"data": {"id": "e1-a1b01771", "source": "NT AUTHORITY\\SYSTEM", "target": "SERVER01.corp.local", "label": "T1570", "link_type": "", "timestamp": "2026-10-28T09:05:15+00:00", "severity": "medium", "colour": "#F1C40F"}}, {"data": {"id": "e2-7f24ada1", "source": "10.0.1.20", "target": "203.0.113.100", "label": "Security Alert", "link_type": "", "timestamp": "2026-10-28T09:05:20+00:00", "severity": "medium", "colour": "#F1C40F"}}, {"data": {"id": "e3-f246d304", "source": "10.0.1.20", "target": "10.0.1.1", "label": "Security Alert", "link_type": "", "timestamp": "2026-10-28T09:10:00+00:00", "severity": "medium", "colour": "#F1C40F"}}, {"data": {"id": "e4-23fc2936", "source": "NT AUTHORITY\\SYSTEM", "target": "DC01.corp.local", "label": "T1021.002", "link_type": "", "timestamp": "2026-10-28T09:10:10+00:00", "severity": "high", "colour": "#E67E22"}}, {"data": {"id": "e5-ecd0a58d", "source": "10.0.1.1", "target": "203.0.113.100", "label": "Security Alert", "link_type": "", "timestamp": "2026-10-28T09:14:30+00:00", "severity": "medium", "colour": "#F1C40F"}}]};
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: {
+          nodes: graphData.nodes || [],
+          edges: graphData.edges || []
+        },
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'background-color': 'data(colour)',
+              'label': 'data(label)',
+              'color': '#F8FAFC',
+              'font-size': '11px',
+              'font-weight': '600',
+              'text-valign': 'bottom',
+              'text-margin-y': 6,
+              'width': 36,
+              'height': 36,
+              'border-width': 2,
+              'border-color': '#1E293B',
+              'overlay-opacity': 0
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              'width': 2,
+              'line-color': 'data(colour)',
+              'target-arrow-color': 'data(colour)',
+              'target-arrow-shape': 'triangle',
+              'curve-style': 'bezier',
+              'label': 'data(label)',
+              'font-size': '9px',
+              'color': '#94A3B8',
+              'text-background-opacity': 0.8,
+              'text-background-color': '#0F172A',
+              'text-background-padding': '2px',
+              'text-background-shape': 'roundrectangle'
+            }
+          }
+        ],
+        layout: {
+          name: 'cose',
+          animate: false,
+          padding: 50,
+          nodeRepulsion: 4500,
+          idealEdgeLength: 100
+        }
+      });
+    });
+  </script>
+</body>
+</html>

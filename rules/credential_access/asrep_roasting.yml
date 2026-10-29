@@ -1,0 +1,79 @@
+# =============================================================================
+# AEGIS Detection Rule: AS-REP Roasting
+# =============================================================================
+# AS-REP Roasting targets Active Directory accounts configured with
+# "Do not require Kerberos preauthentication" (DONT_REQ_PREAUTH UAC flag,
+# 0x400000). When preauthentication is disabled, an adversary can request
+# an AS-REP for the account without knowing its password, receiving a
+# response encrypted with the account's password hash — crackable offline.
+#
+# Tools: Rubeus asreproast, impacket GetNPUsers, PowerView Get-DomainUser
+#
+# Detection Logic:
+#   Event 4768 (TGT Request / AS-REQ) with PreAuthType=0 indicates the KDC
+#   issued a TGT without requiring preauthentication. Combined with RC4
+#   encryption (0x17), this is a strong indicator of AS-REP Roasting.
+#
+# Data Requirements:
+#   - Windows Security Event Log with Event ID 4768 enabled via
+#     Advanced Audit Policy → Account Logon → Audit Kerberos
+#     Authentication Service
+# =============================================================================
+
+title: AS-REP Roasting - Kerberos Authentication Without Pre-Authentication
+id: 3e8f1a2b-6c9d-4b5e-a7f0-8d1c2e3b4a5f
+status: stable
+description: |
+    Detects Kerberos AS-REQ (TGT request) events where preauthentication was
+    not performed (PreAuthType=0) and the ticket was encrypted with RC4
+    (etype 0x17). This combination is the hallmark of AS-REP Roasting, where
+    adversaries enumerate accounts with DONT_REQ_PREAUTH and request TGTs
+    whose encrypted portions can be cracked offline to recover plaintext
+    passwords.
+
+    AS-REP Roasting requires no privileges beyond basic domain user access
+    and can enumerate vulnerable accounts via LDAP queries before requesting
+    the TGTs.
+references:
+    - https://attack.mitre.org/techniques/T1558/004/
+    - https://blog.harmj0y.net/activedirectory/roasting-as-reps/
+    - https://github.com/GhostPack/Rubeus#asreproast
+    - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4768
+    - https://www.ired.team/offensive-security-experiments/active-directory-kerberos-abuse/as-rep-roasting-using-rubeus-and-hashcat
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.credential_access
+    - attack.t1558.004
+logsource:
+    product: windows
+    service: security
+detection:
+    # Primary selection: TGT request without preauthentication using RC4
+    selection:
+        EventID: 4768
+        PreAuthType: '0'                # No preauthentication performed
+        TicketEncryptionType: '0x17'     # RC4-HMAC-MD5 (etype 23)
+
+    # Exclude failures — we want successful AS-REPs that contain crackable material
+    filter_failures:
+        Status: '0x6'      # KDC_ERR_C_PRINCIPAL_UNKNOWN — account doesn't exist
+
+    # Exclude machine accounts (computer accounts have $ suffix and rarely
+    # have DONT_REQ_PREAUTH set; if they do, it's a separate critical finding)
+    filter_machine_accounts:
+        TargetUserName|endswith: '$'
+
+    condition: selection and not filter_failures and not filter_machine_accounts
+falsepositives:
+    - Legacy service accounts intentionally configured without preauthentication for compatibility with older Kerberos implementations
+    - Accounts used by legacy Unix/Linux systems with older MIT Kerberos libraries that do not support preauthentication
+    - Misconfigured service accounts where DONT_REQ_PREAUTH was set inadvertently — investigate and remediate
+    - Very old application integrations (pre-2008 AD functional level compatibility)
+level: high
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/credential_access/asrep_roasting_true_positive.json
+    - tests/fixtures/credential_access/asrep_roasting_false_positive.json

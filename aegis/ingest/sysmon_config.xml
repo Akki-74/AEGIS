@@ -1,0 +1,114 @@
+<!--
+  AEGIS Sysmon Configuration
+  Based on SwiftOnSecurity & Olaf Hartong modular configs.
+  Tailored for AEGIS detection engineering:
+    Event ID 1:  Process Creation (PPID spoofing, LOLBins: mshta, certutil, rundll32)
+    Event ID 3:  Network Connection (LOLBins C2 / download, lateral movement)
+    Event ID 7:  Image / Module Load (DLL side-loading, injection)
+    Event ID 8:  CreateRemoteThread (Process injection)
+    Event ID 10: ProcessAccess (LSASS memory dumping, cross-process write access)
+    Event ID 11: FileCreate (Payload drop, staging)
+    Event ID 13: RegistryEvent (Persistence, tampering)
+    Event ID 25: ProcessTampering (Process hollowing, unmapping)
+-->
+<Sysmon schemaversion="4.90">
+  <HashAlgorithms>MD5,SHA256,IMPHASH</HashAlgorithms>
+  <CheckRevocation/>
+  <EventFiltering>
+    <!-- Event ID 1: Process Creation -->
+    <RuleGroup name="ProcessCreate" groupRelation="or">
+      <ProcessCreate onmatch="include">
+        <Rule groupRelation="or">
+          <!-- Monitor high-risk LOLBins -->
+          <OriginalFileName condition="contains any">mshta.exe;certutil.exe;rundll32.exe;powershell.exe;cmd.exe;wscript.exe;cscript.exe;regsvr32.exe</OriginalFileName>
+          <Image condition="endswith any">\mshta.exe;\certutil.exe;\rundll32.exe;\powershell.exe;\powershell_ise.exe;\cmd.exe</Image>
+          <!-- Parent/Child anomalies -->
+          <ParentImage condition="endswith any">\winword.exe;\excel.exe;\powerpnt.exe;\outlook.exe;\wmiprvse.exe</ParentImage>
+        </Rule>
+      </ProcessCreate>
+      <ProcessCreate onmatch="exclude">
+        <!-- Baseline exclusions for high-frequency benign processes -->
+        <Image condition="is">C:\Windows\System32\audiodg.exe</Image>
+      </ProcessCreate>
+    </RuleGroup>
+
+    <!-- Event ID 3: Network Connection -->
+    <RuleGroup name="NetworkConnect" groupRelation="or">
+      <NetworkConnect onmatch="include">
+        <Rule groupRelation="or">
+          <!-- Monitor network connections initiated by LOLBins / Script engines -->
+          <Image condition="endswith any">\certutil.exe;\mshta.exe;\rundll32.exe;\powershell.exe;\cmd.exe;\wscript.exe;\cscript.exe</Image>
+          <DestinationPort condition="is any">445;3389;5985;5986;88;389;636</DestinationPort>
+        </Rule>
+      </NetworkConnect>
+      <NetworkConnect onmatch="exclude">
+        <DestinationIp condition="is">127.0.0.1</DestinationIp>
+      </NetworkConnect>
+    </RuleGroup>
+
+    <!-- Event ID 7: Image / DLL Load -->
+    <RuleGroup name="ImageLoad" groupRelation="or">
+      <ImageLoad onmatch="include">
+        <!-- Target processes monitored for unusual DLL loads -->
+        <Image condition="endswith any">\lsass.exe;\spoolsv.exe;\explorer.exe</Image>
+      </ImageLoad>
+      <ImageLoad onmatch="exclude">
+        <Signed condition="is">true</Signed>
+        <Signature condition="contains">Microsoft Windows</Signature>
+      </ImageLoad>
+    </RuleGroup>
+
+    <!-- Event ID 8: CreateRemoteThread -->
+    <RuleGroup name="CreateRemoteThread" groupRelation="or">
+      <CreateRemoteThread onmatch="include">
+        <!-- Catch remote threads into common injection targets -->
+        <TargetImage condition="endswith any">\lsass.exe;\explorer.exe;\svchost.exe;\spoolsv.exe;\notepad.exe</TargetImage>
+      </CreateRemoteThread>
+      <CreateRemoteThread onmatch="exclude">
+        <!-- Known legitimate thread injections -->
+        <SourceImage condition="is">C:\Windows\System32\csrss.exe</SourceImage>
+        <SourceImage condition="is">C:\Windows\System32\WerFault.exe</SourceImage>
+      </CreateRemoteThread>
+    </RuleGroup>
+
+    <!-- Event ID 10: ProcessAccess -->
+    <RuleGroup name="ProcessAccess" groupRelation="or">
+      <ProcessAccess onmatch="include">
+        <!-- Critical: Monitor LSASS memory handles -->
+        <TargetImage condition="endswith">\lsass.exe</TargetImage>
+        <!-- Monitor cross-process write access to system binaries -->
+        <GrantedAccess condition="contains any">0x1010;0x1410;0x1438;0x1FFFFF;0x0020;0x1F0FFF</GrantedAccess>
+      </ProcessAccess>
+      <ProcessAccess onmatch="exclude">
+        <!-- Strictly exclude by full path and known signers -->
+        <SourceImage condition="is">C:\Program Files\Windows Defender\MsMpEng.exe</SourceImage>
+        <SourceImage condition="is">C:\Windows\System32\WerFault.exe</SourceImage>
+        <SourceImage condition="is">C:\Windows\System32\wbem\WmiPrvSE.exe</SourceImage>
+        <SourceImage condition="is">C:\Windows\System32\csrss.exe</SourceImage>
+      </ProcessAccess>
+    </RuleGroup>
+
+    <!-- Event ID 11: FileCreate -->
+    <RuleGroup name="FileCreate" groupRelation="or">
+      <FileCreate onmatch="include">
+        <TargetFilename condition="contains any">\AppData\Local\Temp\;\Users\Public\;\Windows\Temp\</TargetFilename>
+        <TargetFilename condition="endswith any">.exe;.dll;.ps1;.vbs;.hta;.bat</TargetFilename>
+      </FileCreate>
+    </RuleGroup>
+
+    <!-- Event ID 13: RegistryEvent -->
+    <RuleGroup name="RegistryEvent" groupRelation="or">
+      <RegistryEvent onmatch="include">
+        <TargetObject condition="contains any">CurrentVersion\Run;CurrentVersion\RunOnce;Services\;Image File Execution Options</TargetObject>
+      </RegistryEvent>
+    </RuleGroup>
+
+    <!-- Event ID 25: ProcessTampering -->
+    <RuleGroup name="ProcessTampering" groupRelation="or">
+      <ProcessTampering onmatch="include">
+        <!-- Process hollowing, herpaderping, unmapping -->
+        <Type condition="contains any">Image is replaced;Process hollowing detected</Type>
+      </ProcessTampering>
+    </RuleGroup>
+  </EventFiltering>
+</Sysmon>

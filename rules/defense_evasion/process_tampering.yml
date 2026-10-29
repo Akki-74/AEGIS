@@ -1,0 +1,82 @@
+# =============================================================================
+# AEGIS Detection Rule: Process Tampering / Process Hollowing
+# =============================================================================
+# Process Tampering (Sysmon Event ID 25) detects when the image of a process
+# in memory does not match the image on disk. This is a hallmark of:
+#   - Process Hollowing (T1055.012): Creating a suspended process, unmapping
+#     its image, writing malicious code, then resuming execution
+#   - Process Doppelgänging: Using NTFS transactions to load a modified
+#     image that is rolled back on disk but remains in memory
+#   - Process Herpaderping: Modifying the on-disk image after the process
+#     has been mapped into memory but before it is inspected
+#
+# Sysmon v13.20+ introduced Event ID 25 specifically for this detection.
+# It fires when Sysmon detects a mismatch between the in-memory process
+# image and the on-disk file, providing high-confidence detection of these
+# advanced evasion techniques.
+#
+# CRITICAL SEVERITY: Any alert from this rule warrants immediate investigation.
+# Process tampering is an advanced technique used by sophisticated adversaries
+# and is extremely rare in legitimate software operation.
+#
+# Data Requirements:
+#   - Sysmon v13.20+ with Event ID 25 (ProcessTampering) enabled
+#   - Sysmon driver must be loaded and operational
+# =============================================================================
+
+title: Process Tampering Detected - Possible Process Hollowing or Doppelgänging
+id: f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c
+status: stable
+description: |
+    Detects process tampering events (Sysmon Event ID 25) indicating that a
+    process image in memory does not match the image on disk. This is a
+    critical indicator of advanced process injection techniques including
+    Process Hollowing (T1055.012), Process Doppelgänging, and Process
+    Herpaderping.
+
+    CRITICAL: This event type has an extremely low false positive rate.
+    Any detection should be treated as a high-priority incident and
+    investigated immediately. Process tampering is characteristic of
+    advanced persistent threats and sophisticated malware.
+references:
+    - https://attack.mitre.org/techniques/T1055/012/
+    - https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
+    - https://www.ired.team/offensive-security/code-injection-process-injection/process-hollowing-and-pe-image-relocations
+    - https://jxy-s.github.io/herpaderping/
+    - https://www.blackhat.com/docs/eu-17/materials/eu-17-Liberman-Lost-In-Transaction-Process-Doppelganging.pdf
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.defense_evasion
+    - attack.t1055.012
+logsource:
+    category: process_tampering
+    product: windows
+detection:
+    # Primary selection: All process tampering events
+    selection:
+        EventID: 25
+
+    # Minimal exclusions — process tampering is almost never legitimate
+    # Only exclude known Sysmon false positives with specific process combinations
+    filter_known_fp:
+        Image|endswith:
+            - '\ProcessHacker.exe'     # Process Hacker (admin tool, known FP)
+            - '\procmon.exe'           # Process Monitor (Sysinternals)
+            - '\procmon64.exe'         # Process Monitor 64-bit
+            - '\vmtoolsd.exe'          # VMware Tools (virtualization artifact)
+            - '\vmwaretray.exe'        # VMware Tray (virtualization artifact)
+
+    condition: selection and not filter_known_fp
+falsepositives:
+    - VMware Tools and other virtualization agents that modify process memory for guest integration
+    - Sysinternals Process Monitor and Process Hacker during deep process inspection — already filtered
+    - Some anti-cheat engines in gaming software that use process hollowing-like techniques
+    - Extremely rare edge case with Windows Error Reporting creating crash dump processes
+level: critical
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/defense_evasion/process_tampering_true_positive.json
+    - tests/fixtures/defense_evasion/process_tampering_false_positive.json

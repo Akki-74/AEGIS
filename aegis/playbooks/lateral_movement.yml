@@ -1,0 +1,41 @@
+name: Lateral Movement Containment Playbook
+description: Immediate containment steps to sever network hops and assess persistence across pivot destinations.
+version: 1.0.0
+trigger_techniques:
+  - T1021      # Remote Services
+  - T1021.002  # SMB/Windows Admin Shares
+  - T1021.006  # Windows Remote Management (WinRM)
+severity_threshold: medium
+
+steps:
+  - id: 1
+    action: sever_active_sessions
+    description: Terminate active SMB and WinRM sessions originating from suspect pivot workstation.
+    automated: false
+    tools: ["net session /delete", "Close-SmbSession"]
+
+  - id: 2
+    action: isolate_affected_hosts
+    description: Place both source pivot host and destination host into quarantine containment VLAN or EDR software isolation.
+    automated: false
+    tools: ["EDR API", "Switch ACL / 802.1X"]
+    parameters:
+      hosts: "{affected_hosts}"
+
+  - id: 3
+    action: map_network_connections
+    description: Pull Zeek conn.log records and Sysmon Event 3 events between affected hosts within ±30 minutes of initial pivot.
+    automated: false
+    tools: ["AEGIS OpenSearch Query", "Zeek conn parser"]
+
+  - id: 4
+    action: check_remote_persistence
+    description: Inspect remote registry Run keys, scheduled tasks (Event 4698), and new services (Event 7045) on destination systems.
+    automated: false
+    tools: ["Velociraptor", "Autoruns CLI", "Get-ScheduledTask"]
+
+  - id: 5
+    action: reset_pivoted_credentials
+    description: Rotate passwords and invalidate tokens for all user accounts observed traversing the lateral connection.
+    automated: false
+    tools: ["Set-ADAccountPassword", "Revoke-AzureADUserAllRefreshToken"]

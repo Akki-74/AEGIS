@@ -1,0 +1,73 @@
+# ======================== Filebeat Configuration ==========================
+# AEGIS Network Telemetry Pipeline for Zeek JSON logs
+# Ingests: conn.log, dns.log, http.log, ssl.log, files.log
+
+filebeat.inputs:
+  - type: filestream
+    id: zeek-conn
+    paths:
+      - /opt/zeek/logs/current/conn.log
+      - /opt/zeek/logs/*/*conn*.log
+    json.keys_under_root: true
+    json.add_error_key: true
+    fields:
+      event.dataset: zeek.connection
+      aegis.telemetry_tier: network_traffic
+    fields_under_root: true
+
+  - type: filestream
+    id: zeek-dns
+    paths:
+      - /opt/zeek/logs/current/dns.log
+      - /opt/zeek/logs/*/*dns*.log
+    json.keys_under_root: true
+    fields:
+      event.dataset: zeek.dns
+      aegis.telemetry_tier: network_dns
+    fields_under_root: true
+
+  - type: filestream
+    id: zeek-http
+    paths:
+      - /opt/zeek/logs/current/http.log
+      - /opt/zeek/logs/*/*http*.log
+    json.keys_under_root: true
+    fields:
+      event.dataset: zeek.http
+      aegis.telemetry_tier: network_http
+    fields_under_root: true
+
+  - type: filestream
+    id: zeek-ssl
+    paths:
+      - /opt/zeek/logs/current/ssl.log
+      - /opt/zeek/logs/*/*ssl*.log
+    json.keys_under_root: true
+    fields:
+      event.dataset: zeek.ssl
+      aegis.telemetry_tier: network_tls
+    fields_under_root: true
+
+# ---------------------------- Processors -----------------------------------
+processors:
+  - rename:
+      fields:
+        - from: "id.orig_h"
+          to: "source.ip"
+        - from: "id.orig_p"
+          to: "source.port"
+        - from: "id.resp_h"
+          to: "destination.ip"
+        - from: "id.resp_p"
+          to: "destination.port"
+        - from: "proto"
+          to: "network.transport"
+        - from: "uid"
+          to: "network.session_id"
+      ignore_missing: true
+      fail_on_error: false
+
+# -------------------------- Output Destination -----------------------------
+output.elasticsearch:
+  hosts: ["${OPENSEARCH_HOST:localhost:9200}"]
+  index: "filebeat-zeek-%{+yyyy.MM.dd}"

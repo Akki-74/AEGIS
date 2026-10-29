@@ -1,0 +1,98 @@
+# =============================================================================
+# AEGIS Detection Rule: AD CS Certificate Request with Subject Alternative Name
+# =============================================================================
+# Active Directory Certificate Services (AD CS) abuse is a critical attack
+# vector where adversaries request certificates with a Subject Alternative
+# Name (SAN) that differs from the requester's identity. This enables
+# impersonation of any user in the domain, including Domain Admins.
+#
+# Attack Vector (ESC1 - Misconfigured Certificate Templates):
+#   1. Adversary identifies a certificate template that:
+#      - Allows requesters to specify a SAN in the CSR
+#      - Has enrollment rights for low-privilege users
+#      - Enables client authentication EKU
+#   2. Adversary requests a certificate with SAN=administrator@domain.com
+#   3. Uses the issued certificate for PKINIT or Schannel authentication
+#      as the target user
+#
+# Security Events:
+#   - 4886: Certificate Manager approved a certificate request
+#   - 4887: Certificate Services approved a certificate request and issued
+#     a certificate (includes SAN information)
+#
+# Data Requirements:
+#   - AD CS audit logging enabled on the Certificate Authority server
+#   - Security Event IDs 4886, 4887 enabled via:
+#     certutil -setreg CA\AuditFilter 127
+# =============================================================================
+
+title: AD CS Certificate Request with Subject Alternative Name Abuse
+id: b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e
+status: stable
+description: |
+    Detects AD CS certificate requests where the Subject Alternative Name
+    (SAN) differs from the requester's identity, indicating potential
+    certificate abuse for domain privilege escalation (ESC1). An adversary
+    can request a certificate with a SAN specifying another user (e.g.,
+    Domain Admin) if the certificate template allows requester-specified SANs,
+    then use the certificate for authentication as that user.
+
+    CRITICAL: Certificate requests with mismatched SANs should be
+    investigated immediately. This technique can lead to full domain
+    compromise within minutes of certificate issuance.
+references:
+    - https://attack.mitre.org/techniques/T1649/
+    - https://posts.specterops.io/certified-pre-owned-d95910965cd2
+    - https://github.com/ly4k/Certipy
+    - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4887
+    - https://www.thehacker.recipes/ad/movement/ad-cs/
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.credential_access
+    - attack.t1649
+logsource:
+    product: windows
+    service: security
+detection:
+    # Selection: Certificate request approval/issuance events with SAN
+    selection_cert_events:
+        EventID:
+            - 4886      # Certificate Manager approved a certificate request
+            - 4887      # Certificate Services issued a certificate
+
+    # Look for SAN specification in the request attributes
+    # When a requester specifies a SAN, it appears in the request attributes
+    selection_san_specified:
+        Attributes|contains:
+            - 'SAN:'                                    # Subject Alternative Name specified
+            - 'san:'                                    # Case variant
+            - 'subjectaltname'                          # Full attribute name
+            - 'CertificateTemplate:SubCA'               # SubCA template abuse
+            - 'CertificateTemplate:User'                # User template with SAN
+
+    # High-confidence: SAN contains explicit user principal name
+    selection_san_upn:
+        Attributes|contains:
+            - 'upn='                                    # UPN specified in SAN
+            - 'dns='                                    # DNS name in SAN (machine impersonation)
+            - 'email='                                  # Email in SAN
+
+    # Exclude legitimate auto-enrollment patterns
+    filter_auto_enrollment:
+        Requester|endswith: '$'  # Machine accounts auto-enrolling (common and legitimate)
+
+    condition: selection_cert_events and (selection_san_specified or selection_san_upn) and not filter_auto_enrollment
+falsepositives:
+    - Legitimate certificate enrollment where users are authorized to request certificates with SANs (e.g., web server administrators requesting multi-SAN certificates)
+    - Auto-enrollment of machine certificates by domain controllers — partially filtered by machine account exclusion
+    - IT administrators requesting certificates on behalf of service accounts using Certificate Manager rights
+    - Subordinate CA certificate requests during PKI hierarchy setup
+    - Web server certificate renewals that include multiple DNS SANs for load-balanced services
+level: critical
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/ad_attacks/adcs_san_abuse_true_positive.json
+    - tests/fixtures/ad_attacks/adcs_san_abuse_false_positive.json

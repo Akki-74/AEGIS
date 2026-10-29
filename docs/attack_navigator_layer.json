@@ -1,0 +1,142 @@
+{
+  "name": "AEGIS Detection Coverage",
+  "versions": {
+    "attack": "14",
+    "navigator": "4.5",
+    "layer": "4.5"
+  },
+  "domain": "enterprise-attack",
+  "description": "AEGIS Detection Engineering & Automated Incident Correlation Coverage",
+  "filters": {
+    "platforms": [
+      "windows",
+      "linux"
+    ]
+  },
+  "sorting": 3,
+  "layout": {
+    "layout": "side",
+    "aggregateFunction": "max",
+    "showID": true,
+    "showName": true
+  },
+  "gradient": {
+    "colors": [
+      "#1E293B",
+      "#0284C7",
+      "#38BDF8"
+    ],
+    "minValue": 0,
+    "maxValue": 1
+  },
+  "legendItems": [
+    {
+      "label": "1 Rule",
+      "color": "#0284C7"
+    },
+    {
+      "label": "Multiple Rules",
+      "color": "#38BDF8"
+    }
+  ],
+  "techniques": [
+    {
+      "techniqueID": "T1649",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1558.004",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1558.003",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1003.001",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1055",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1134.004",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1055.003",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1055.012",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1105",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1140",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1218.005",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1218.011",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1059.001",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1021",
+      "score": 1,
+      "color": "#38BDF8",
+      "comment": "Covered by 1 AEGIS Sigma rule(s)",
+      "enabled": true
+    }
+  ]
+}

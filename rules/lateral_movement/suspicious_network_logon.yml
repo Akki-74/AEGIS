@@ -1,0 +1,105 @@
+# =============================================================================
+# AEGIS Detection Rule: Suspicious Network Logon (Type 3) to Sensitive Hosts
+# =============================================================================
+# Network logons (Type 3) occur when a user or process authenticates to a
+# remote system over the network (e.g., SMB, WMI, PsExec, WinRM). While
+# network logons are extremely common in enterprise environments, logons
+# to sensitive hosts (Domain Controllers, admin workstations, critical
+# servers) from non-standard sources are indicators of lateral movement.
+#
+# This rule is a LOW severity BUILDING BLOCK designed for the AEGIS
+# correlation engine. Individual Type 3 logon events have an extremely
+# high base rate and will generate significant volume. The correlation
+# engine should:
+#   1. Aggregate by source IP/account to detect enumeration patterns
+#   2. Cross-reference with prior credential access detections
+#   3. Escalate when combined with other lateral movement indicators
+#   4. Track first-seen source→destination pairs for anomaly detection
+#
+# Data Requirements:
+#   - Windows Security Event Log with Event ID 4624 enabled via
+#     Advanced Audit Policy → Logon/Logoff → Audit Logon
+#   - Requires classification of sensitive hosts (DCs, admin workstations)
+#     in the AEGIS asset database
+# =============================================================================
+
+title: Suspicious Network Logon to Sensitive Host - Building Block
+id: c9d0e1f2-a3b4-4c5d-6e7f-8a9b0c1d2e3f
+status: stable
+description: |
+    Detects Type 3 (Network) logon events to sensitive hosts from non-standard
+    sources. This is a building block rule for the AEGIS correlation engine —
+    individual events are low severity but become significant when aggregated
+    with credential access alerts, unusual source-destination pairs, or
+    temporal patterns indicating lateral movement campaigns.
+
+    Network logons are used by: SMB file access, PsExec, WMI remote
+    execution, PowerShell Remoting (WinRM), RDP NLA pre-authentication,
+    and administrative tools. The high base rate requires correlation for
+    actionable intelligence.
+references:
+    - https://attack.mitre.org/techniques/T1021/
+    - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624
+    - https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventID=4624
+    - https://adsecurity.org/?p=1184
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.lateral_movement
+    - attack.t1021
+logsource:
+    product: windows
+    service: security
+detection:
+    # Primary selection: Network logon (Type 3) with authentication success
+    selection:
+        EventID: 4624
+        LogonType: 3          # Network logon
+
+    # Filter to sensitive destination hosts
+    # NOTE: In production, these should be populated from the AEGIS asset
+    # database or a dynamic lookup. The patterns below are generic examples.
+    selection_sensitive_target:
+        WorkstationName|contains:
+            - 'DC'            # Domain Controllers (naming convention)
+            - 'ADMIN'         # Admin workstations (naming convention)
+            - 'PAW'           # Privileged Access Workstations
+            - 'TIER0'         # Tier 0 assets (AD infrastructure)
+
+    # Exclude expected / routine network logon sources
+    filter_domain_controllers:
+        IpAddress|startswith:
+            - '127.'          # Loopback (local service logons)
+            - '::1'           # IPv6 loopback
+        
+    # Exclude machine account logons (computer-to-computer, very common)
+    filter_machine_logons:
+        TargetUserName|endswith: '$'
+
+    # Exclude common service accounts and known administrative accounts
+    filter_service_accounts:
+        TargetUserName:
+            - 'ANONYMOUS LOGON'     # Anonymous logons (separate detection)
+            - '-'                    # Null session
+
+    # Exclude logons from known monitoring/management systems
+    filter_known_sources:
+        IpAddress:
+            - '-'            # Local logons recorded as network
+
+    condition: selection and selection_sensitive_target and not filter_domain_controllers and not filter_machine_logons and not filter_service_accounts and not filter_known_sources
+falsepositives:
+    - Domain Controller replication traffic generating Type 3 logons between DCs
+    - SCCM/Intune management agents performing inventory and patch management
+    - Monitoring solutions (SCOM, Nagios, Zabbix) performing health checks via WMI
+    - Help desk tools using remote admin capabilities (Remote Desktop, RSAT)
+    - Backup solutions (Veeam, Commvault) authenticating to servers for backup operations
+    - Group Policy processing generating network logons to DCs for policy refresh
+    - Print spooler service creating network logons for printer access
+level: low
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/lateral_movement/suspicious_network_logon_true_positive.json
+    - tests/fixtures/lateral_movement/suspicious_network_logon_false_positive.json

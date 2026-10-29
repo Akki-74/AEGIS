@@ -1,0 +1,38 @@
+name: Active Directory Compromise & AD CS Abuse Playbook
+description: High-impact containment for Active Directory Certificate Services (AD CS) exploitation and domain privilege compromise.
+version: 1.0.0
+trigger_techniques:
+  - T1649      # Steal or Forge Authentication Certificates (AD CS)
+  - T1134.004  # Parent PID Spoofing / Access Token Manipulation
+severity_threshold: critical
+
+steps:
+  - id: 1
+    action: revoke_fraudulent_certificates
+    description: Locate and immediately revoke certificates issued with mismatched Subject Alternative Names (SAN) via CertSrv database.
+    automated: false
+    tools: ["certutil -revoke", "CertSrv.msc MMC"]
+
+  - id: 2
+    action: disable_vulnerable_templates
+    description: Remove enrollee supplies subject (CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT) flag or unpublish misconfigured ESC1/ESC2 certificate templates.
+    automated: false
+    tools: ["certutil -catemplates", "Active Directory Certificate Templates MMC"]
+
+  - id: 3
+    action: double_krbtgt_reset
+    description: Execute the New-KrbtgtKeys.ps1 procedure twice (minimum 12-24h apart) to invalidate all existing forged Golden Tickets without breaking replication.
+    automated: false
+    tools: ["New-KrbtgtKeys.ps1", "KDS Root Key Management"]
+
+  - id: 4
+    action: audit_privileged_groups
+    description: Audit membership of Domain Admins, Enterprise Admins, Schema Admins, and Account Operators for rogue additions.
+    automated: false
+    tools: ["Get-ADGroupMember", "BloodHound / SharpHound CE"]
+
+  - id: 5
+    action: gpo_integrity_verification
+    description: Verify SYSVOL GPO GPT.ini version increments and compare scheduled task XML configs against known clean backups.
+    automated: false
+    tools: ["Get-GPOReport", "Sysvol audit script"]

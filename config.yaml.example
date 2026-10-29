@@ -1,0 +1,62 @@
+# =============================================================================
+# AEGIS Configuration — Example
+# =============================================================================
+# Copy this file to config.yaml and adjust values for your environment.
+#
+#   cp config.yaml.example config.yaml
+#
+# The config.yaml file is git-ignored by default to prevent leaking secrets.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Elasticsearch / OpenSearch connection
+# ---------------------------------------------------------------------------
+elasticsearch:
+  # Hostname or IP of the ES/OS cluster
+  host: "localhost"
+
+  # REST API port (default: 9200)
+  port: 9200
+
+  # Index pattern to query for security alerts
+  # Supports wildcards — e.g., "winlogbeat-*", "logs-*"
+  index_pattern: "winlogbeat-*"
+
+  # API key for authentication (base64-encoded id:api_key)
+  # Generate via: POST /_security/api_key
+  # Leave empty to fall back to basic auth or anonymous access
+  api_key: ""
+
+# ---------------------------------------------------------------------------
+# Correlation engine parameters
+# ---------------------------------------------------------------------------
+correlation:
+  # Maximum time window (in minutes) to group related alerts into a single
+  # incident.  Alerts separated by more than this window start a new chain.
+  window_minutes: 30
+
+  # If no new alert arrives within this many minutes, the current correlation
+  # session for that entity is closed and scored.
+  gap_timeout_minutes: 10
+
+  # Minimum number of distinct ATT&CK techniques required before a group of
+  # alerts is promoted from "alert cluster" to "correlated incident".
+  min_techniques: 2
+
+# ---------------------------------------------------------------------------
+# Incident scoring weights
+# ---------------------------------------------------------------------------
+# Weights must sum to 1.0.  Each weight controls how heavily the
+# corresponding factor contributes to the final incident severity score.
+scoring:
+  # Weight for kill-chain progression (how many phases are covered)
+  kill_chain_weight: 0.30
+
+  # Weight for technique diversity (number of unique techniques observed)
+  technique_diversity_weight: 0.25
+
+  # Weight for privilege escalation indicators
+  privilege_escalation_weight: 0.25
+
+  # Weight for the criticality rating of the affected asset
+  asset_criticality_weight: 0.20

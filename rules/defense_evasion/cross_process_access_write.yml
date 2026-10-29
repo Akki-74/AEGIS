@@ -1,0 +1,105 @@
+# =============================================================================
+# AEGIS Detection Rule: Suspicious Cross-Process Access with Write Permissions
+# =============================================================================
+# This rule detects processes that open handles to other processes with write
+# permissions (PROCESS_VM_WRITE, PROCESS_ALL_ACCESS), which is a prerequisite
+# for process injection techniques. Writing to another process's virtual
+# memory (WriteProcessMemory) requires these access rights and is the
+# foundation of most injection techniques.
+#
+# Note: LSASS credential access is handled by a separate, dedicated rule
+# (lsass_memory_access.yml) and is excluded from this rule to prevent
+# alert duplication and allow independent tuning.
+#
+# Access Mask Reference:
+#   - 0x0020: PROCESS_VM_WRITE
+#   - 0x0028: PROCESS_VM_WRITE | PROCESS_VM_OPERATION
+#   - 0x002A: PROCESS_VM_WRITE | PROCESS_VM_OPERATION | PROCESS_CREATE_THREAD
+#   - 0x1FFFFF: PROCESS_ALL_ACCESS (includes all permissions)
+#   - 0x1F0FFF: PROCESS_ALL_ACCESS (legacy mask)
+#
+# Data Requirements:
+#   - Sysmon v13+ with Event ID 10 (ProcessAccess) enabled
+#   - Sysmon configuration must include cross-process access events
+# =============================================================================
+
+title: Suspicious Cross-Process Access with Write Permissions
+id: a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d
+status: stable
+description: |
+    Detects processes opening handles to other processes with write permissions
+    (PROCESS_VM_WRITE or PROCESS_ALL_ACCESS), which is a prerequisite for
+    process injection via WriteProcessMemory. This is a building block
+    detection covering general cross-process write access.
+
+    LSASS access is explicitly excluded — a dedicated rule
+    (lsass_memory_access.yml) handles credential theft detection with
+    LSASS-specific tuning and exclusions.
+references:
+    - https://attack.mitre.org/techniques/T1055/
+    - https://docs.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights
+    - https://www.elastic.co/blog/ten-process-injection-techniques-technical-survey-common-and-trending-process
+    - https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.defense_evasion
+    - attack.t1055
+logsource:
+    category: process_access
+    product: windows
+detection:
+    # Primary selection: cross-process access with write-capable masks
+    selection:
+        EventID: 10
+        GrantedAccess:
+            - '0x0020'     # PROCESS_VM_WRITE
+            - '0x0028'     # PROCESS_VM_WRITE | PROCESS_VM_OPERATION
+            - '0x002A'     # PROCESS_VM_WRITE | PROCESS_VM_OPERATION | PROCESS_CREATE_THREAD
+            - '0x1FFFFF'   # PROCESS_ALL_ACCESS
+            - '0x1F0FFF'   # PROCESS_ALL_ACCESS (legacy)
+            - '0x0838'     # PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ | PROCESS_QUERY_LIMITED_INFORMATION
+
+    # Exclude LSASS targets — handled by dedicated lsass_memory_access.yml rule
+    filter_lsass_target:
+        TargetImage|endswith: '\lsass.exe'
+
+    # Exclude known-good inter-process access patterns
+    filter_known_good:
+        SourceImage:
+            - 'C:\Windows\System32\csrss.exe'
+            - 'C:\Windows\System32\wininit.exe'
+            - 'C:\Windows\System32\winlogon.exe'
+            - 'C:\Windows\System32\services.exe'
+            - 'C:\Windows\System32\svchost.exe'
+            - 'C:\Windows\System32\WerFault.exe'
+            - 'C:\Windows\System32\smss.exe'
+            - 'C:\Windows\System32\taskmgr.exe'
+            - 'C:\Windows\System32\dwm.exe'
+            - 'C:\Windows\System32\sihost.exe'
+
+    # Exclude self-access (same process accessing itself)
+    filter_self_access:
+        SourceImage: TargetImage
+
+    # Exclude security products — add vendor-specific paths
+    filter_security:
+        SourceImage|contains:
+            - '\Windows Defender\'
+            - '\Microsoft\Windows Defender\'
+            - '\ProgramData\Microsoft\Windows Defender\'
+
+    condition: selection and not filter_lsass_target and not filter_known_good and not filter_self_access and not filter_security
+falsepositives:
+    - EDR and antivirus products that write to process memory for behavior monitoring hooks
+    - Debugging tools (Visual Studio, WinDbg, x64dbg) that write to debuggee process memory
+    - Application compatibility layers that patch process memory via shims
+    - Accessibility tools (screen readers, narrators) that inject helper DLLs
+    - Some software update mechanisms that patch running processes in-memory
+level: medium
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/defense_evasion/cross_process_access_write_true_positive.json
+    - tests/fixtures/defense_evasion/cross_process_access_write_false_positive.json

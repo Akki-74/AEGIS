@@ -1,0 +1,98 @@
+# =============================================================================
+# AEGIS Detection Rule: Suspicious PowerShell Script Block Logging
+# =============================================================================
+# This rule monitors PowerShell Script Block Logging (Event ID 4104) for
+# indicators of malicious activity. Script Block Logging captures the full
+# deobfuscated script content before execution, making it one of the most
+# powerful visibility sources for detecting PowerShell-based attacks.
+#
+# This rule is classified as a BUILDING BLOCK (medium severity) because
+# individual keyword matches may be benign in isolation (e.g., legitimate
+# use of System.Reflection.Assembly in admin scripts). The AEGIS correlation
+# engine should aggregate multiple hits, consider the executing user context,
+# and cross-reference with process ancestry for escalation.
+#
+# Data Requirements:
+#   - PowerShell Script Block Logging enabled via Group Policy:
+#     Computer Configuration → Administrative Templates → Windows Components
+#     → Windows PowerShell → Turn on PowerShell Script Block Logging
+#   - Microsoft-Windows-PowerShell/Operational log
+# =============================================================================
+
+title: Suspicious PowerShell Script Block Content
+id: 9c4e5f6a-7b8d-4a3e-c1d2-5e6f7a8b9c0d
+status: stable
+description: |
+    Detects PowerShell Script Block Logging events containing keywords and
+    patterns associated with offensive tooling, credential theft, code
+    execution, and payload delivery. Script Block Logging captures the full
+    deobfuscated script content, bypassing most obfuscation techniques
+    (encoded commands, string concatenation, variable substitution).
+
+    This is a building block rule (medium severity). Individual matches may
+    be benign; the AEGIS correlation engine should aggregate hits per user/host
+    and cross-reference with process creation events for escalation.
+references:
+    - https://attack.mitre.org/techniques/T1059/001/
+    - https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_logging
+    - https://www.fireeye.com/blog/threat-research/2016/02/greater_visibilityt.html
+    - https://github.com/PowerShellMafia/PowerSploit
+    - https://adsecurity.org/?p=2921
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.execution
+    - attack.t1059.001
+logsource:
+    category: ps_script
+    product: windows
+    # Channel: Microsoft-Windows-PowerShell/Operational
+detection:
+    # Script Block Logging event
+    selection_event:
+        EventID: 4104
+
+    # Offensive tool invocations — direct tool names
+    selection_offensive_tools:
+        ScriptBlockText|contains:
+            - 'Invoke-Mimikatz'         # Mimikatz PowerShell wrapper (PowerSploit)
+            - 'Invoke-Shellcode'        # Shellcode injection (PowerSploit)
+            - 'Get-Keystrokes'          # Keylogger (PowerSploit)
+
+    # Encoded command execution — common evasion technique
+    selection_encoded_execution:
+        ScriptBlockText|contains:
+            - 'Invoke-Expression'       # IEX — dynamic code execution
+            - 'IEX'                     # Shorthand alias for Invoke-Expression
+
+    # Download cradles and payload delivery
+    selection_download_cradles:
+        ScriptBlockText|contains:
+            - 'Net.WebClient'           # .NET web client for downloads
+            - 'DownloadString'          # Download and execute in-memory
+            - 'DownloadFile'            # Download to disk
+            - 'Invoke-WebRequest'       # PowerShell native download cmdlet
+            - 'Start-BitsTransfer'      # BITS-based download (stealthier)
+
+    # Reflection and memory-based execution
+    selection_reflection:
+        ScriptBlockText|contains:
+            - 'System.Reflection.Assembly'      # .NET assembly loading
+            - '[Convert]::FromBase64String'      # Base64 decode (payload staging)
+            - 'System.Runtime.InteropServices'   # P/Invoke for Win32 API calls
+            - '[System.IO.MemoryStream]'         # In-memory stream (fileless)
+
+    condition: selection_event and (selection_offensive_tools or selection_encoded_execution or selection_download_cradles or selection_reflection)
+falsepositives:
+    - Legitimate administrative scripts that use System.Reflection.Assembly for module loading
+    - IT automation tools (SCCM, Ansible, DSC) that use Invoke-Expression for dynamic configuration
+    - Developer workstations running build scripts that download dependencies via Net.WebClient
+    - PowerShell-based monitoring agents that use DownloadString for configuration updates
+    - Security tools and red team exercises (coordinate with SOC to whitelist during engagements)
+level: medium
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/execution/suspicious_powershell_scriptblock_true_positive.json
+    - tests/fixtures/execution/suspicious_powershell_scriptblock_false_positive.json

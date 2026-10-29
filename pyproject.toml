@@ -1,0 +1,160 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel>=0.41.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aegis"
+version = "0.1.0"
+description = "AEGIS — Detection Engineering & Automated Incident Correlation platform"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [
+    { name = "AEGIS Team" },
+]
+keywords = [
+    "sigma",
+    "detection-engineering",
+    "siem",
+    "correlation",
+    "mitre-attack",
+    "threat-detection",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Typing :: Typed",
+]
+
+# ---------------------------------------------------------------------------
+# Runtime dependencies
+# ---------------------------------------------------------------------------
+dependencies = [
+    "pysigma>=0.11.0",
+    "pysigma-backend-elasticsearch>=1.1.0",
+    "pysigma-pipeline-sysmon>=1.0.0",
+    "pysigma-pipeline-ecs-windows>=1.0.0",
+    "pandas>=2.1.0",
+    "networkx>=3.2",
+    "click>=8.1.0",
+    "pyyaml>=6.0.1",
+    "jinja2>=3.1.0",
+    "rich>=13.6.0",
+]
+
+# ---------------------------------------------------------------------------
+# Optional / development dependencies
+# ---------------------------------------------------------------------------
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.5.0",
+    "mypy>=1.7.0",
+]
+
+# ---------------------------------------------------------------------------
+# CLI entry point
+# ---------------------------------------------------------------------------
+[project.scripts]
+aegis = "aegis.cli:main"
+
+# ---------------------------------------------------------------------------
+# Setuptools package discovery
+# ---------------------------------------------------------------------------
+[tool.setuptools.packages.find]
+include = ["aegis*"]
+
+# ---------------------------------------------------------------------------
+# Ruff — fast Python linter & formatter
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["aegis", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort (import ordering)
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "RUF",    # ruff-specific rules
+    "D",      # pydocstyle
+    "ANN",    # flake8-annotations
+    "S",      # flake8-bandit (security)
+    "T20",    # flake8-print
+    "PT",     # flake8-pytest-style
+]
+ignore = [
+    "D100",   # Missing docstring in public module (handled per-file)
+    "D104",   # Missing docstring in public package
+    "ANN101", # Missing type annotation for self
+    "ANN102", # Missing type annotation for cls
+    "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
+    "S101",   # Use of assert detected (needed in tests)
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["aegis"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D", "ANN", "S101"]
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = [
+    "--strict-markers",
+    "--tb=short",
+    "-q",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks integration tests requiring external services",
+]
+
+# ---------------------------------------------------------------------------
+# Mypy — static type checking
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+strict_optional = true
+
+[[tool.mypy.overrides]]
+module = [
+    "sigma.*",
+    "pandas.*",
+    "networkx.*",
+]
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------------------
+# Coverage
+# ---------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["aegis"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 60

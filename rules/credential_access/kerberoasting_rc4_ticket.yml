@@ -1,0 +1,85 @@
+# =============================================================================
+# AEGIS Detection Rule: Kerberoasting via RC4 Ticket Request
+# =============================================================================
+# Kerberoasting is a post-exploitation technique where an adversary requests
+# Kerberos TGS tickets encrypted with RC4 (etype 0x17 / 23) for service
+# accounts, then cracks them offline using tools like Hashcat or John.
+#
+# RC4 (ARCFOUR-HMAC-MD5) is a weak encryption type that is significantly
+# faster to crack than AES-based tickets. Modern Kerberoasting tools
+# (Rubeus, Invoke-Kerberoast, impacket GetUserSPNs) explicitly request
+# RC4 tickets to maximize cracking efficiency.
+#
+# Volume Threshold Note:
+#   A single RC4 ticket request may be benign (legacy application). However,
+#   >5 RC4 TGS requests from the same account within 10 minutes is a strong
+#   indicator of automated Kerberoasting enumeration. This rule fires on
+#   individual requests as a building block; the AEGIS correlation engine
+#   should aggregate and escalate based on frequency thresholds.
+#
+# Data Requirements:
+#   - Windows Security Event Log with Event ID 4769 (Kerberos Service Ticket
+#     Operations) enabled via Advanced Audit Policy → Account Logon →
+#     Audit Kerberos Service Ticket Operations
+# =============================================================================
+
+title: Kerberoasting - RC4 Encrypted TGS Ticket Request
+id: 7b2e9c4d-5f8a-4d3e-b6c1-2a9d8e7f4b3c
+status: stable
+description: |
+    Detects Kerberos TGS ticket requests using RC4 encryption (etype 0x17),
+    which is the primary indicator of Kerberoasting attacks. Adversaries use
+    tools like Rubeus, Invoke-Kerberoast, or impacket's GetUserSPNs to
+    request RC4-encrypted service tickets that can be cracked offline.
+
+    Machine accounts (ending with $) are excluded as their SPNs generate
+    routine RC4 requests in environments without AES enforcement.
+
+    Volume threshold: >5 requests in 10 minutes from the same account is a
+    high-confidence building block for Kerberoasting enumeration. The AEGIS
+    correlation engine handles temporal aggregation and escalation.
+references:
+    - https://attack.mitre.org/techniques/T1558/003/
+    - https://www.ired.team/offensive-security-experiments/active-directory-kerberos-abuse/t1208-kerberoasting
+    - https://posts.specterops.io/kerberoasting-revisited-d434351bd4d1
+    - https://github.com/GhostPack/Rubeus
+    - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4769
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.credential_access
+    - attack.t1558.003
+logsource:
+    category: ~  # Not applicable; using direct channel reference
+    product: windows
+    service: security
+detection:
+    # Primary selection: TGS request with RC4 encryption
+    selection:
+        EventID: 4769
+        TicketEncryptionType: '0x17'   # RC4-HMAC-MD5 (etype 23)
+        TicketOptions: '0x40810000'     # Forwardable, Renewable, Canonicalize
+
+    # Exclude machine accounts — their SPNs routinely generate RC4 tickets
+    # Machine accounts always end with '$'
+    filter_machine_accounts:
+        ServiceName|endswith: '$'
+
+    # Exclude common service ticket patterns that generate benign RC4 requests
+    filter_krbtgt:
+        ServiceName: 'krbtgt'
+
+    condition: selection and not filter_machine_accounts and not filter_krbtgt
+falsepositives:
+    - Legacy applications that explicitly request RC4 Kerberos tickets due to lack of AES support
+    - Service accounts configured without AES key material (missing msDS-SupportedEncryptionTypes)
+    - Environments that have not enforced AES-only Kerberos via Group Policy
+    - Third-party Linux/macOS clients using older Kerberos libraries that default to RC4
+    - Legitimate admin tooling that enumerates SPNs for inventory purposes
+level: high
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/credential_access/kerberoasting_rc4_true_positive.json
+    - tests/fixtures/credential_access/kerberoasting_rc4_false_positive.json

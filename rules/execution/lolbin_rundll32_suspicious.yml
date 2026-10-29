@@ -1,0 +1,101 @@
+# =============================================================================
+# AEGIS Detection Rule: LOLBin - Suspicious Rundll32.exe Execution
+# =============================================================================
+# rundll32.exe is a legitimate Windows utility for executing functions
+# exported from DLL files. Adversaries abuse rundll32 to:
+#   1. Execute malicious DLLs from user-writable locations (Temp, AppData)
+#   2. Execute inline scripts via javascript: or vbscript: protocols
+#   3. Download remote payloads via URL protocols
+#   4. Abuse built-in DLL exports for LOLBin techniques:
+#      - comsvcs.dll MiniDump → LSASS credential dumping
+#      - shell32.dll ShellExec_RunDLL → arbitrary command execution
+#
+# Data Requirements:
+#   - Sysmon Event ID 1 (Process Creation) with CommandLine logging
+#   - Alternatively: Windows Security Event ID 4688 with command line auditing
+# =============================================================================
+
+title: Suspicious Rundll32.exe Execution - LOLBin Abuse
+id: c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f
+status: stable
+description: |
+    Detects suspicious rundll32.exe execution patterns associated with
+    Living-off-the-Land Binary (LOLBin) abuse. This includes inline script
+    execution (javascript:/vbscript: protocols), remote payload download
+    (HTTP URLs), abuse of built-in Windows DLL exports (comsvcs.dll MiniDump
+    for credential dumping, shell32.dll ShellExec_RunDLL for arbitrary
+    execution), and execution of DLLs from suspicious filesystem locations
+    (Temp, AppData, Downloads).
+
+    Medium severity as a building block — many of these patterns require
+    correlation with process ancestry and network connections for escalation.
+references:
+    - https://attack.mitre.org/techniques/T1218/011/
+    - https://lolbas-project.github.io/lolbas/Binaries/Rundll32/
+    - https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/rundll32
+    - https://www.ired.team/offensive-security/credential-access-and-credential-dumping/dumping-lsass-passwords-without-mimikatz-minidumpwritedump-av-signature-bypass
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.execution
+    - attack.t1218.011
+    - attack.defense_evasion
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    # Primary selection: rundll32.exe process creation
+    selection_rundll32:
+        EventID: 1
+        Image|endswith: '\rundll32.exe'
+
+    # Inline script execution via protocol handlers
+    selection_inline_script:
+        CommandLine|contains:
+            - 'javascript:'         # Inline JavaScript execution
+            - 'vbscript:'           # Inline VBScript execution
+
+    # Remote payload download
+    selection_remote:
+        CommandLine|contains:
+            - 'http://'             # Remote DLL via HTTP
+            - 'https://'            # Remote DLL via HTTPS
+
+    # Abuse of built-in DLL exports for LOLBin techniques
+    selection_lolbin_exports:
+        CommandLine|contains:
+            - 'comsvcs.dll MiniDump'                # LSASS memory dump (credential access)
+            - 'comsvcs.dll,MiniDump'                # Comma-separated variant
+            - 'comsvcs MiniDump'                    # Without .dll extension
+            - 'shell32.dll ShellExec_RunDLL'        # Arbitrary command execution
+            - 'shell32.dll,ShellExec_RunDLL'        # Comma-separated variant
+            - 'advpack.dll,LaunchINFSection'        # INF-based code execution
+            - 'advpack.dll,RegisterOCX'             # OCX registration abuse
+            - 'ieadvpack.dll,LaunchINFSection'      # IE variant of INF execution
+            - 'syssetup.dll,SetupInfObjectInstallAction'  # INF install action abuse
+            - 'pcwutl.dll,LaunchApplication'        # Program Compatibility Wizard abuse
+
+    # DLL execution from suspicious filesystem locations
+    selection_suspicious_path:
+        CommandLine|contains:
+            - '\Temp\'              # Temporary directories
+            - '\AppData\'           # User application data
+            - '\Downloads\'         # User downloads folder
+            - '\Desktop\'           # Desktop (dropped files)
+            - '\ProgramData\'       # Writable data directory
+            - '\Users\Public\'      # Public user directory
+
+    condition: selection_rundll32 and (selection_inline_script or selection_remote or selection_lolbin_exports or selection_suspicious_path)
+falsepositives:
+    - Legitimate software installers that use rundll32 to register DLLs from Temp directories during installation
+    - Windows shell operations that invoke shell32.dll ShellExec_RunDLL for file associations
+    - Enterprise software deployment tools (SCCM, Intune) that execute DLLs from ProgramData
+    - Printer driver installations that use rundll32 with printui.dll from Temp paths
+    - Windows Update components that stage DLLs in AppData before registration
+level: medium
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/execution/lolbin_rundll32_true_positive.json
+    - tests/fixtures/execution/lolbin_rundll32_false_positive.json

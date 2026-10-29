@@ -1,0 +1,40 @@
+[
+  {
+    "alert_id": "benign-ps-001",
+    "rule_id": "92f3e82b-665b-43e7-b4d2-f4e9185a9732",
+    "rule_name": "Routine Administrative PowerShell Activity",
+    "mitre_technique": "T1059.001",
+    "mitre_tactic": "execution",
+    "timestamp": "2026-10-29T08:00:15Z",
+    "hostname": "WKS-ADMIN-01",
+    "username": "CORP\\itadmin",
+    "severity": "low",
+    "process_guid": "{11111111-2222-3333-4444-555555555551}",
+    "parent_process_guid": "{00000000-0000-0000-0000-000000000001}",
+    "logon_id": "0x4F12",
+    "raw_event": {
+      "EventID": 4104,
+      "ScriptBlockText": "Get-Service | Where-Object Status -eq 'Running' | Select-Object Name, DisplayName",
+      "User": "CORP\\itadmin"
+    }
+  },
+  {
+    "alert_id": "benign-ps-002",
+    "rule_id": "92f3e82b-665b-43e7-b4d2-f4e9185a9732",
+    "rule_name": "Routine Administrative PowerShell Activity",
+    "mitre_technique": "T1059.001",
+    "mitre_tactic": "execution",
+    "timestamp": "2026-10-29T08:02:40Z",
+    "hostname": "WKS-ADMIN-01",
+    "username": "CORP\\itadmin",
+    "severity": "low",
+    "process_guid": "{11111111-2222-3333-4444-555555555551}",
+    "parent_process_guid": "{00000000-0000-0000-0000-000000000001}",
+    "logon_id": "0x4F12",
+    "raw_event": {
+      "EventID": 4104,
+      "ScriptBlockText": "Get-Process -IncludeUserName | Sort-Object CPU -Descending | Select-Object -First 10",
+      "User": "CORP\\itadmin"
+    }
+  }
+]

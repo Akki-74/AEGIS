@@ -1,0 +1,90 @@
+# =============================================================================
+# AEGIS Detection Rule: LSASS Memory Access
+# =============================================================================
+# This rule detects processes that open a handle to the Local Security Authority
+# Subsystem Service (LSASS) with suspicious access masks. Credential dumping
+# tools such as Mimikatz, ProcDump, and custom C2 implants open LSASS with
+# specific GrantedAccess masks to read process memory and extract credential
+# material (NTLM hashes, Kerberos tickets, plaintext passwords).
+#
+# Resilience Note:
+#   Adversaries increasingly use direct syscalls (e.g., NtOpenProcess via
+#   ntdll.dll manual mapping) to bypass user-mode API hooking and EDR
+#   inline hooks. Sysmon's kernel-level callback (ObRegisterCallbacks)
+#   still captures these events, but some evasion frameworks (e.g.,
+#   SyscallWhispers, HellsGate) may avoid detection if Sysmon's driver
+#   is unloaded or bypassed. Consider pairing with LSASS RunAsPPL and
+#   Credential Guard for defense-in-depth.
+#
+# Data Requirements:
+#   - Sysmon v13+ with Event ID 10 (ProcessAccess) enabled
+#   - Sysmon configuration must NOT exclude lsass.exe from TargetImage
+# =============================================================================
+
+title: Suspicious LSASS Memory Access via Process Handle
+id: 8a3f2b1e-4c5d-4e6f-9a7b-1c2d3e4f5a6b
+status: stable
+description: |
+    Detects processes opening handles to LSASS (lsass.exe) with access masks
+    commonly associated with credential dumping tools. The GrantedAccess masks
+    0x1010 (PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ), 0x1410
+    (PROCESS_QUERY_INFORMATION | PROCESS_VM_READ), 0x1438 (includes
+    PROCESS_VM_OPERATION), and 0x1FFFFF (PROCESS_ALL_ACCESS) are strong
+    indicators of memory reading for credential extraction.
+
+    Resilience: Adversaries may evade user-mode hooks via direct syscalls
+    (NtOpenProcess, NtReadVirtualMemory) using frameworks like
+    SyscallWhispers or HellsGate. Sysmon's kernel-mode ObRegisterCallbacks
+    driver still captures these handle operations. However, kernel-level
+    evasion (driver unload, minifilter tampering) can defeat this detection.
+    Layer with LSASS PPL, Credential Guard, and ETW-based monitoring.
+references:
+    - https://attack.mitre.org/techniques/T1003/001/
+    - https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
+    - https://www.ired.team/offensive-security/credential-access-and-credential-dumping/dump-credentials-from-lsass-process-without-mimikatz
+    - https://blog.xpnsec.com/exploring-mimikatz-part-1/
+    - https://github.com/SigmaHQ/sigma/wiki/Specification
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.credential_access
+    - attack.t1003.001
+logsource:
+    category: process_access
+    product: windows
+detection:
+    # Primary selection: LSASS as target with suspicious access masks
+    selection_target:
+        EventID: 10
+        TargetImage|endswith: '\lsass.exe'
+        GrantedAccess:
+            - '0x1010'    # PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ
+            - '0x1410'    # PROCESS_QUERY_INFORMATION | PROCESS_VM_READ
+            - '0x1438'    # Includes PROCESS_VM_OPERATION
+            - '0x1FFFFF'  # PROCESS_ALL_ACCESS — very high confidence indicator
+
+    # Exclusions: Known-good processes that legitimately access LSASS
+    # IMPORTANT: Use full paths, not just filenames, to prevent masquerading
+    filter_known_good:
+        SourceImage:
+            - 'C:\Windows\System32\WerFault.exe'          # Windows Error Reporting
+            - 'C:\ProgramData\Microsoft\Windows Defender\Platform\*\MsMpEng.exe'  # Defender AV engine
+            - 'C:\Windows\System32\csrss.exe'              # Client/Server Runtime Subsystem
+            - 'C:\Windows\System32\svchost.exe'            # Service Host (various services)
+            - 'C:\Windows\System32\wininit.exe'            # Windows Initialization
+            - 'C:\Windows\System32\lsass.exe'              # LSASS self-access
+            - 'C:\Windows\System32\smss.exe'               # Session Manager Subsystem
+
+    condition: selection_target and not filter_known_good
+falsepositives:
+    - Legitimate security products (EDR, DLP) that inspect LSASS memory — add their full paths to filter_known_good
+    - Windows Error Reporting (WerFault.exe) during LSASS crash dumps — already filtered
+    - Custom enterprise monitoring agents that perform process memory analysis
+    - Vulnerability scanning tools during authenticated scans
+level: high
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/credential_access/lsass_memory_access_true_positive.json
+    - tests/fixtures/credential_access/lsass_memory_access_false_positive.json

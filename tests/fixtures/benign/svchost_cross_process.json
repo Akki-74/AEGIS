@@ -1,0 +1,21 @@
+[
+  {
+    "alert_id": "benign-proc-001",
+    "rule_id": "c1f72a44-88ab-49ef-8a4e-1288b8cc0931",
+    "rule_name": "Antivirus Scanner Process Inspection",
+    "mitre_technique": "T1055",
+    "mitre_tactic": "defense_evasion",
+    "timestamp": "2026-10-29T09:00:00Z",
+    "hostname": "WKS-USER-02",
+    "username": "NT AUTHORITY\\SYSTEM",
+    "severity": "info",
+    "process_guid": "{99999999-0000-1111-2222-333333333333}",
+    "logon_id": "0x3E7",
+    "raw_event": {
+      "EventID": 10,
+      "SourceImage": "C:\\Program Files\\Windows Defender\\MsMpEng.exe",
+      "TargetImage": "C:\\Windows\\System32\\svchost.exe",
+      "GrantedAccess": "0x1410"
+    }
+  }
+]

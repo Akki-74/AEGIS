@@ -1,0 +1,96 @@
+# =============================================================================
+# AEGIS Detection Rule: CreateRemoteThread Process Injection
+# =============================================================================
+# CreateRemoteThread injection (T1055.003) is one of the most common process
+# injection techniques. The adversary:
+#   1. Opens a handle to a target process (OpenProcess)
+#   2. Allocates memory in the target (VirtualAllocEx)
+#   3. Writes shellcode/DLL path to allocated memory (WriteProcessMemory)
+#   4. Creates a remote thread to execute the payload (CreateRemoteThread)
+#
+# Sysmon Event ID 8 (CreateRemoteThread) logs when a process creates a
+# thread in another process. This is a strong indicator of injection when
+# the source process is unusual and the target is a high-value system process.
+#
+# Data Requirements:
+#   - Sysmon v13+ with Event ID 8 (CreateRemoteThread detected) enabled
+#   - Sysmon configuration should NOT exclude common target processes
+# =============================================================================
+
+title: Suspicious CreateRemoteThread Injection into System Processes
+id: d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a
+status: stable
+description: |
+    Detects CreateRemoteThread events (Sysmon Event ID 8) where a process
+    creates a thread in another process, indicating potential process injection.
+    This rule focuses on injection into high-value target processes
+    (explorer.exe, svchost.exe, lsass.exe, etc.) from non-standard source
+    processes, filtering out known-good inter-process thread creation.
+
+    CreateRemoteThread is used by multiple injection techniques including
+    classic DLL injection, shellcode injection, and reflective DLL loading.
+references:
+    - https://attack.mitre.org/techniques/T1055/003/
+    - https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon
+    - https://www.elastic.co/blog/ten-process-injection-techniques-technical-survey-common-and-trending-process
+    - https://www.ired.team/offensive-security/code-injection-process-injection/process-injection
+author: AEGIS Detection Engineering
+date: 2026-10-29
+modified: 2026-10-29
+tags:
+    - attack.defense_evasion
+    - attack.t1055.003
+logsource:
+    category: create_remote_thread
+    product: windows
+detection:
+    # Primary selection: CreateRemoteThread targeting common injection targets
+    selection:
+        EventID: 8
+        TargetImage|endswith:
+            - '\explorer.exe'       # Windows Explorer — common injection target
+            - '\svchost.exe'        # Service Host — many instances, hides in noise
+            - '\lsass.exe'          # LSASS — credential theft via injection
+            - '\csrss.exe'          # Client/Server Runtime — high-privilege target
+            - '\wininit.exe'        # Windows Initialization — system process
+            - '\winlogon.exe'       # Windows Logon — credential interception
+            - '\spoolsv.exe'       # Print Spooler — network-accessible
+            - '\services.exe'       # Service Control Manager
+            - '\RuntimeBroker.exe'  # Runtime Broker — UWP apps
+            - '\dllhost.exe'        # COM Surrogate — common target
+            - '\SearchIndexer.exe'  # Windows Search — runs as SYSTEM
+            - '\taskhost.exe'       # Task Host — generic host process
+            - '\taskhostw.exe'      # Task Host Window — Windows 10+
+
+    # Exclude known-good source processes that legitimately create remote threads
+    filter_known_good_sources:
+        SourceImage:
+            - 'C:\Windows\System32\csrss.exe'              # CSRSS thread creation
+            - 'C:\Windows\System32\wininit.exe'            # System initialization
+            - 'C:\Windows\System32\winlogon.exe'           # Logon subsystem
+            - 'C:\Windows\System32\services.exe'           # Service control
+            - 'C:\Windows\System32\svchost.exe'            # Service host
+            - 'C:\Windows\System32\lsass.exe'              # LSASS inter-process
+            - 'C:\Windows\System32\smss.exe'               # Session manager
+            - 'C:\Windows\System32\WerFault.exe'           # Error reporting
+
+    # Exclude common security products (add your EDR/AV paths here)
+    filter_security_products:
+        SourceImage|contains:
+            - '\Windows Defender\'
+            - '\Microsoft\Windows Defender\'
+            - '\ProgramData\Microsoft\Windows Defender\'
+
+    condition: selection and not filter_known_good_sources and not filter_security_products
+falsepositives:
+    - EDR and antivirus products that inject monitoring DLLs into processes for behavior analysis
+    - Application compatibility shims (apphelp.dll) that create threads in target processes
+    - Accessibility tools (screen readers, magnifiers) that inject into GUI processes
+    - Debugging tools (Visual Studio, WinDbg) that create remote threads for breakpoints
+    - Input method editors (IMEs) that inject into processes for text input handling
+level: high
+
+# AEGIS-specific metadata for test harness integration
+test_fixtures:
+    - tests/fixtures/defense_evasion/create_remote_thread_true_positive.json
+    - tests/fixtures/defense_evasion/create_remote_thread_false_positive.json

@@ -1,0 +1,62 @@
+# ======================== Winlogbeat Configuration =========================
+# AEGIS Telemetry Collection Pipeline
+# Sources:
+#   - Microsoft-Windows-Sysmon/Operational
+#   - Security (Logon 4624/4625, Explicit Creds 4648, Kerberos 4768/4769, AD CS 4886/4887)
+#   - Microsoft-Windows-PowerShell/Operational (Script Block 4104)
+
+winlogbeat.event_logs:
+  - name: Microsoft-Windows-Sysmon/Operational
+    event_id: 1, 3, 7, 8, 10, 11, 13, 25
+    processors:
+      - add_fields:
+          target: aegis
+          fields:
+            logsource: sysmon
+            telemetry_tier: endpoint_behavior
+
+  - name: Security
+    event_id: 4624, 4625, 4648, 4768, 4769, 4886, 4887, 4898
+    processors:
+      - add_fields:
+          target: aegis
+          fields:
+            logsource: windows_security
+            telemetry_tier: identity_and_auth
+
+  - name: Microsoft-Windows-PowerShell/Operational
+    event_id: 4104
+    processors:
+      - add_fields:
+          target: aegis
+          fields:
+            logsource: powershell_scriptblock
+            telemetry_tier: execution_inspection
+
+# ---------------------------- Processors -----------------------------------
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  # ECS Field Normalization
+  - rename:
+      fields:
+        - from: "winlog.event_data.ProcessGuid"
+          to: "process.entity_id"
+        - from: "winlog.event_data.ParentProcessGuid"
+          to: "process.parent.entity_id"
+        - from: "winlog.event_data.LogonId"
+          to: "winlog.logon.id"
+      ignore_missing: true
+      fail_on_error: false
+
+# -------------------------- Output Destination -----------------------------
+output.elasticsearch:
+  hosts: ["${OPENSEARCH_HOST:localhost:9200}"]
+  index: "winlogbeat-aegis-%{+yyyy.MM.dd}"
+  ssl.verification_mode: "${SSL_VERIFY:certificate}"
+  # api_key: "${ES_API_KEY:}"
+
+setup.template.name: "aegis-winlogbeat"
+setup.template.pattern: "winlogbeat-aegis-*"
+setup.template.enabled: true
+setup.template.overwrite: false
