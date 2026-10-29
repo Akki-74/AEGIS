@@ -11,6 +11,9 @@ This log maintains a chronological record of all architecture decisions, enginee
 - [Session 4: Graph Visualizer & Incident Response Playbooks](#session-4-graph-visualizer--incident-response-playbooks)
 - [Session 5: End-to-End Evaluation & Verification](#session-5-end-to-end-evaluation--verification)
 - [Session 6: Automated Session Logging Subsystem](#session-6-automated-session-logging-subsystem)
+- [Session 7: Open-Source Licensing, GitHub README & Per-Turn Session Maintenance](#session-7-open-source-licensing-github-readme--per-turn-session-maintenance)
+- [Session 8: Repository Hygiene & Git Ignore Modernization](#session-8-repository-hygiene--git-ignore-modernization)
+- [Session 9: In-Depth Technical Portfolio README & Architecture Documentation](#session-9-in-depth-technical-portfolio-readme--architecture-documentation)
 
 ---
 
@@ -119,6 +122,102 @@ This log maintains a chronological record of all architecture decisions, enginee
   - Output formats:
     - Human-readable plaintext audit trail: `logs/aegis_session.log`
     - Structured machine-parseable JSON Lines: `logs/aegis_session.jsonl`
+
+---
+
+### Session 7: Open-Source Licensing, GitHub README & Per-Turn Session Maintenance
+- **Date / Time:** 2026-10-29 14:24:00 UTC
+- **Operator:** Detection Engineering Lead & Assistant
+- **Status:** COMPLETED
+- **Objectives:**
+  - Author a production-grade, GitHub-ready `README.md` with CI badges, architecture schematics, evaluation benchmarks, and CLI documentation.
+  - Establish open-source licensing via standard MIT License (`LICENSE`).
+  - Formally enforce mandatory per-prompt session log maintenance across both markdown documentation (`docs/session_log.md`) and operational runtime logs (`logs/aegis_session.log` / `logs/aegis_session.jsonl`).
+- **Actions Taken:**
+  - Created root `LICENSE` file under MIT terms.
+  - Rewrote `README.md` with:
+    - Status badges (CI, Python 3.11+, Navigator v4.5, MIT License, Ruff, 80% Noise Reduction).
+    - ASCII platform architecture diagram.
+    - Quickstart instructions and 1-command demo walkthrough (`python scripts/demo.py`).
+    - Empirical evaluation table (Noise reduction 80%, TTT 5.6x speedup, Purity 96.4%, FP rate <0.2 host-day).
+    - Complete CLI command reference and full repository directory map.
+  - Verified that all 31 unit, integration, and resilience tests pass without regression.
+  - Appended persistent session records via `aegis.session_logger.SessionLogger`.
+- **Decisions & Observations:**
+  - Guaranteed that every subsequent prompt and development turn automatically logs its objectives, actions taken, and verification results to prevent drift and provide complete traceability.
+- **Artifacts Modified / Created:**
+  - `LICENSE`
+  - `README.md`
+  - `docs/session_log.md`
+  - `logs/aegis_session.log`
+  - `logs/aegis_session.jsonl`
+
+---
+
+### Session 8: Repository Hygiene & Git Ignore Modernization
+- **Date / Time:** 2026-10-29 14:37:00 UTC
+- **Operator:** Security Operations & Detection Engineer
+- **Status:** COMPLETED
+- **Objectives:**
+  - Update repository `.gitignore` to prevent committing transient logs, capture files, test outputs, and sensitive configurations.
+  - Establish `.gitkeep` placeholders for tracked directories (`logs/`, `reports/`) to preserve folder hierarchy in version control.
+  - Ensure test fixtures under `tests/fixtures/**` remain tracked while excluding general `*.evtx`, `*.pcap`, and `*.pcapng` binaries.
+- **Actions Taken:**
+  - Rewrote `.gitignore` with comprehensive exclusions across 12 distinct categories:
+    - Python bytecode, packaging, and distribution artifacts.
+    - Virtual environments (`.venv/`, `venv/`, `env/`, `ENV/`).
+    - Testing, coverage (`.pytest_cache/`, `htmlcov/`, `.hypothesis/`).
+    - Type checking & linters (`.mypy_cache/`, `.ruff_cache/`).
+    - IDEs, text editors, and OS metadata files (`Thumbs.db`, `Desktop.ini`, `.DS_Store`).
+    - Environment configurations & secrets (`.env`, `config.yaml`, retaining `.example` templates).
+    - Large binary captures (`*.pcap`, `*.pcapng`, `*.cap`, `*.evtx`, `*.etl`) while explicitly preserving `!tests/fixtures/**`.
+    - Generated incident reports & attack graphs (`reports/*`, `*.ndjson`, `attack_graph.html`, while preserving `!reports/.gitkeep`).
+    - Runtime operational traces (`logs/*`, `*.log`, `*.jsonl`, preserving `!logs/.gitkeep` and `!docs/session_log.md`).
+    - Scratch and temporary files (`scratch/`, `tmp/`, `temp/`, `*.bak`, `*.tmp`).
+  - Created `.gitkeep` in `logs/` and `reports/`.
+  - Executed `git status` verifying that runtime artifacts (`aegis_session.*`, `attack_graph.html`, `incidents.json`) are now properly ignored.
+- **Decisions & Observations:**
+  - Kept `docs/session_log.md` explicitly unignored as it constitutes primary engineering documentation, while runtime execution logs in `logs/` are ignored to avoid repository bloat.
+- **Evaluation / Test Results:**
+  - `git status --short`: clean tracking of `.gitignore`, `logs/.gitkeep`, `reports/.gitkeep`.
+  - All 31 suite tests remain passing with zero regressions.
+- **Artifacts Modified / Created:**
+  - `.gitignore` (Updated)
+  - `logs/.gitkeep` (Created)
+  - `reports/.gitkeep` (Created)
+  - `docs/session_log.md` (Updated)
+
+---
+
+### Session 9: In-Depth Technical Portfolio README & Architecture Documentation
+- **Date / Time:** 2026-10-29 14:43:00 UTC
+- **Operator:** Detection Engineering Lead & Security Architect
+- **Status:** COMPLETED
+- **Objectives:**
+  - Elevate project `README.md` to a world-class, research-grade engineering portfolio benchmark that clearly differentiates AEGIS from simplistic alert dashboards.
+  - Articulate the technical problem statement, mathematical correlation formulations, resilient behavioral detection mechanisms, and multi-factor scoring model.
+  - Document the full MITRE ATT&CK detection matrix with primary telemetry IDs, access masks, and evasion resilience strategies.
+  - Detail empirical benchmark metrics (5.0:1 compression ratio, 80% noise reduction, 5.6x MTTRC acceleration, 98.3% triage accuracy) with study methodology.
+  - Document adversary evasion limitations with honest, defensible engineering commentary (PPID spoofing, direct syscalls, BYOVD).
+- **Actions Taken:**
+  - Authored a comprehensive, publication-grade `README.md` incorporating:
+    - Custom ASCII hero art banner and metadata badges (CI, Python 3.11+, MIT, Ruff, ATT&CK Navigator v4.5, Noise Reduction, Triage Speedup).
+    - Problem comparison ASCII schematic ("Traditional SIEM Alert Flood" vs. "AEGIS Incident Synthesis Engine").
+    - End-to-end data pipeline architecture flowchart.
+    - Deep dives into the 7 technical innovations (Resilient Sigma Rules, Entity Resolution, Semantic Linker, Sliding-Window Clustering, Multi-Factor Scoring, Zero-Server Cytoscape.js Visualizer, YAML Containment Playbooks).
+    - Complete 13-technique MITRE ATT&CK coverage matrix linking to MITRE definitions.
+    - Mathematical formulation of incident risk scoring:
+      $$R_{\text{incident}} = (0.30 S_{\text{killchain}} + 0.25 S_{\text{diversity}} + 0.25 S_{\text{privilege}} + 0.20 S_{\text{asset}}) \times 100$$
+    - Pre-registered evaluation summary and Controlled Time-to-Triage (TTT) study table.
+    - Production CLI command reference with copy-pasteable snippets for all subcommands.
+    - Adversary Evasion Defense matrix detailing blind spots and detection mitigations.
+    - Academic BibTeX citation entry.
+- **Evaluation / Test Results:**
+  - Verified markdown rendering and link integrity across all local and external references.
+  - All 31 suite tests pass (`python run_tests.py`).
+- **Artifacts Modified / Created:**
+  - `README.md` (Extensively redesigned & expanded)
+  - `docs/session_log.md` (Updated)
 
 ---
 
