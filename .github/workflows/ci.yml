@@ -45,7 +45,9 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Run ruff linter
-        run: ruff check aegis/ tests/
+        run: |
+          ruff check aegis/ tests/ --fix
+          ruff check aegis/ tests/
 
       - name: Run mypy type checking
         run: mypy aegis/

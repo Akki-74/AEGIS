@@ -34,8 +34,10 @@ class RuleCompiler:
         self.pipeline_name = pipeline_name
         self._pysigma_available = False
         try:
-            import sigma  # type: ignore[import-untyped]
-            from sigma.backends.elasticsearch import ElasticsearchQuerystringBackend  # type: ignore[import-untyped]
+            import sigma  # noqa: F401  # type: ignore[import-untyped]
+            from sigma.backends.elasticsearch import (  # noqa: F401  # type: ignore[import-untyped]
+                ElasticsearchQuerystringBackend,
+            )
             self._pysigma_available = True
             logger.info("pySigma backend loaded successfully.")
         except ImportError:

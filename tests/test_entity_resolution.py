@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from aegis.correlate.entity_resolution import EntityResolver
-from aegis.correlate.schema import Alert, Entity, EntityType, Severity
+from aegis.correlate.schema import Alert, EntityType, Severity
 
 
 def _make_alert(

@@ -32,7 +32,7 @@ from aegis.correlate.schema import Alert
 try:
     import networkx as nx  # type: ignore[import-untyped]
 except ImportError:  # pragma: no cover
-    raise ImportError("networkx is required: pip install networkx")
+    raise ImportError("networkx is required: pip install networkx") from None
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +150,7 @@ class TemporalClusterer:
         # Collect which alerts touch each entity-graph edge.
         alert_pairs: set[tuple[str, str]] = set()
 
-        for u, v, data in linked_graph.edges(data=True):
+        for _u, _v, data in linked_graph.edges(data=True):
             aid_set: set[str] = data.get("alert_ids", set())
             aid_list = sorted(aid_set)
             for i, a1 in enumerate(aid_list):

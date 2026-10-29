@@ -36,7 +36,7 @@ def test_certutil_command_line_resilience() -> None:
     """Verify certutil rule catches multiple download and decoding arguments."""
     rule = _load_rule("execution/lolbin_certutil_download.yml")
     detection = rule["detection"]
-    
+
     # Check that both urlcache and decode parameters are covered
     has_urlcache = any(
         isinstance(v, dict) and any("-urlcache" in str(val) for val in v.values())

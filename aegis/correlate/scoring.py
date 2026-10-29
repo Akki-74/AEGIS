@@ -30,7 +30,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from aegis.correlate.schema import Entity, EntityType, Incident, Severity
+from aegis.correlate.schema import Incident, Severity
 
 logger = logging.getLogger(__name__)
 

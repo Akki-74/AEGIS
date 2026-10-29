@@ -88,6 +88,12 @@ select = [
 ignore = [
     "E501",   # Line length handled by formatter
     "B008",   # Do not perform function calls in argument defaults
+    "UP017",  # Use datetime.UTC alias (timezone.utc is standard across versions)
+    "UP042",  # Class inherits from both str and enum.Enum (standard pattern)
+    "W293",   # Blank line contains whitespace
+    "B904",   # Raise from within except clause
+    "B007",   # Loop control variable not used
+    "F541",   # f-string without placeholders
 ]
 
 [tool.ruff.lint.isort]

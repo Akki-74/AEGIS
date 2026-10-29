@@ -16,9 +16,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from aegis.config import AegisConfig
 from aegis.correlate.entity_resolution import EntityResolver
@@ -60,7 +58,7 @@ class CorrelationEngine:
 
     def __init__(self, config: AegisConfig | None = None) -> None:
         self.config = config or AegisConfig()
-        
+
         self.resolver = EntityResolver()
         self.linker = AlertLinker()
         self.clusterer = TemporalClusterer(
@@ -123,7 +121,7 @@ class CorrelationEngine:
 
             # Sort alerts chronologically
             sorted_alerts = sorted(cluster_alerts, key=lambda a: a.timestamp)
-            
+
             # Aggregate metadata
             techniques = {a.mitre_technique for a in sorted_alerts if a.mitre_technique}
             tactics = {a.mitre_tactic for a in sorted_alerts if a.mitre_tactic}

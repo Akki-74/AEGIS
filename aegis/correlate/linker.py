@@ -335,7 +335,7 @@ class AlertLinker:
                 (host_ent, alert)
             )
 
-        for user_id, entries in user_index.items():
+        for entries in user_index.values():
             # Sort by timestamp.
             entries.sort(key=lambda x: x[1].timestamp)
             for i in range(len(entries)):

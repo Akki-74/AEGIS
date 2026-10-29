@@ -22,11 +22,9 @@ from __future__ import annotations
 
 import json
 import logging
-import sys
 import time
 import uuid
 from pathlib import Path
-from typing import Any
 
 import click
 import yaml
@@ -180,7 +178,7 @@ def rules_test(ctx: click.Context, rules_dir: str) -> None:
     """Run test suite and rule validation."""
     from run_tests import main as run_test_suite
     t0 = time.time()
-    console.print(f"[bold green]▶ Running AEGIS test suite and rule verifications[/bold green]")
+    console.print("[bold green]▶ Running AEGIS test suite and rule verifications[/bold green]")
     code = run_test_suite()
     dur = time.time() - t0
     session_logger.log_event(
@@ -312,7 +310,7 @@ def correlate_run(ctx: click.Context, input_file: str, output: str | None) -> No
 
     t0 = time.time()
     config = _load_config(ctx)
-    console.print(f"[bold green]▶ Running correlation engine[/bold green]")
+    console.print("[bold green]▶ Running correlation engine[/bold green]")
     console.print(f"  Input:  {input_file}")
 
     engine = CorrelationEngine(config)
@@ -524,7 +522,7 @@ def eval_noise(
     """Calculate noise reduction metrics comparing raw vs. correlated alerts."""
     from aegis.eval.noise import NoiseAnalyzer
 
-    console.print(f"[bold green]▶ Calculating noise reduction metrics[/bold green]")
+    console.print("[bold green]▶ Calculating noise reduction metrics[/bold green]")
     with Path(before_file).open("r", encoding="utf-8") as f:
         raw_data = json.load(f)
     raw_alerts = raw_data.get("alerts", raw_data) if isinstance(raw_data, dict) else raw_data
